@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.bootstrapandroidapp.activity;
+package me.henrytao.firechatengine.sample.ui;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

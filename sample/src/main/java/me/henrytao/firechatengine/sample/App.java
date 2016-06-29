@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.bootstrapandroidapp;
+package me.henrytao.firechatengine.sample;
 
 import android.app.Application;
 

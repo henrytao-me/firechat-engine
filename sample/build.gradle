@@ -86,28 +86,29 @@ retrolambda {
 
 dependencies {
   compile fileTree(dir: "libs", include: ["*.jar"])
-  compile rootProject.ext.dependencies["com.android.support:design"]
-  compile rootProject.ext.dependencies["com.android.support:appcompat-v7"]
-  compile rootProject.ext.dependencies["com.android.support:cardview-v7"]
-  compile rootProject.ext.dependencies["com.android.support:recyclerview-v7"]
+  compile rootProject.ext.sampleDependencies["com.android.support:design"]
+  compile rootProject.ext.sampleDependencies["com.android.support:appcompat-v7"]
+  compile rootProject.ext.sampleDependencies["com.android.support:cardview-v7"]
+  compile rootProject.ext.sampleDependencies["com.android.support:recyclerview-v7"]
 
-  compile(rootProject.ext.dependencies["me.henrytao:mdcore"]) {
+  compile(rootProject.ext.sampleDependencies["me.henrytao:mdcore"]) {
     exclude group: "com.android.support"
   }
-  compile(rootProject.ext.dependencies["me.henrytao:mvvm-life-cycle"]) {
+  compile(rootProject.ext.sampleDependencies["me.henrytao:mvvm-life-cycle"]) {
     exclude group: "com.android.support"
   }
-  compile(rootProject.ext.dependencies["me.henrytao:recyclerview"]) {
+  compile(rootProject.ext.sampleDependencies["me.henrytao:recyclerview"]) {
     exclude group: "com.android.support"
   }
-  compile(rootProject.ext.dependencies["me.henrytao:smooth-app-bar-layout"]) {
+  compile(rootProject.ext.sampleDependencies["me.henrytao:smooth-app-bar-layout"]) {
     exclude group: "com.android.support"
   }
 
-  testCompile rootProject.ext.dependencies["junit:junit"]
-  testCompile rootProject.ext.dependencies["org.hamcrest:hamcrest-core"]
-  testCompile rootProject.ext.dependencies["org.hamcrest:hamcrest-library"]
-  testCompile rootProject.ext.dependencies["org.hamcrest:hamcrest-integration"]
-  testCompile rootProject.ext.dependencies["org.robolectric:robolectric"]
-  testCompile rootProject.ext.dependencies["org.robolectric:shadows-support-v4"]
+  compile(project(":firechat-engine")) {
+    exclude group: "com.android.support"
+  }
+
+  testCompile rootProject.ext.sampleDependencies["junit:junit"]
+  testCompile rootProject.ext.sampleDependencies["org.robolectric:robolectric"]
+  testCompile rootProject.ext.sampleDependencies["org.robolectric:shadows-support-v4"]
 }
