@@ -1,0 +1,35 @@
+/*
+ * Copyright 2015 "Henry Tao <hi@henrytao.me>"
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+if (project.hasProperty('ANDROID_STORE_FILE') &&
+    project.hasProperty('ANDROID_STORE_PASSWORD') &&
+    project.hasProperty('ANDROID_KEY_ALIAS') &&
+    project.hasProperty('ANDROID_KEY_PASSWORD')) {
+  android.buildTypes.release.signingConfig = android.signingConfigs.release
+  android.signingConfigs.release.storeFile = file(ANDROID_STORE_FILE)
+  android.signingConfigs.release.storePassword = ANDROID_STORE_PASSWORD
+  android.signingConfigs.release.keyAlias = ANDROID_KEY_ALIAS
+  android.signingConfigs.release.keyPassword = ANDROID_KEY_PASSWORD
+} else if (System.getenv('ANDROID_STORE_FILE') &&
+    System.getenv('ANDROID_STORE_PASSWORD') &&
+    System.getenv('ANDROID_KEY_ALIAS') &&
+    System.getenv('ANDROID_KEY_PASSWORD')) {
+  android.buildTypes.release.signingConfig = android.signingConfigs.release
+  android.signingConfigs.release.storeFile = file(System.getenv('ANDROID_STORE_FILE'))
+  android.signingConfigs.release.storePassword = System.getenv('ANDROID_STORE_PASSWORD')
+  android.signingConfigs.release.keyAlias = System.getenv('ANDROID_KEY_ALIAS')
+  android.signingConfigs.release.keyPassword = System.getenv('ANDROID_KEY_PASSWORD')
+}
