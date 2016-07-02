@@ -17,28 +17,25 @@
 package me.henrytao.firechatengine.sample.ui;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
-import android.view.MenuItem;
 
-import me.henrytao.bootstrapandroidapp.R;
+import me.henrytao.firechatengine.sample.ui.base.BaseActivity;
+import me.henrytao.firechatengine.sample.ui.chat.ChatActivity;
+import me.henrytao.firechatengine.sample.util.NavigationUtils;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.menu_main, menu);
-    return true;
+  public void onInitializeViewModels() {
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    return super.onOptionsItemSelected(item);
+  public void onSetContentView(Bundle savedInstanceState) {
   }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+    NavigationUtils.startActivityAndFinishWithNoAnimation(this, ChatActivity.newIntent(this));
+    finish();
   }
 }

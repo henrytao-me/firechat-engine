@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.sample;
+package me.henrytao.firechatengine.sample.util;
 
-import com.google.firebase.database.FirebaseDatabase;
-
-import android.app.Application;
+import android.app.Activity;
 import android.content.Intent;
-
-import me.henrytao.firechatengine.sample.service.FirechatBackgroundService;
+import android.support.annotation.NonNull;
 
 /**
- * Created by henrytao on 6/17/16.
+ * Created by henrytao on 7/1/16.
  */
-public class App extends Application {
+public class NavigationUtils {
 
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-    startService(new Intent(this, FirechatBackgroundService.class));
+  public static void startActivityAndFinishWithNoAnimation(@NonNull Activity activity, @NonNull Intent intent) {
+    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    activity.startActivity(intent);
+    activity.overridePendingTransition(0, 0);
   }
 }

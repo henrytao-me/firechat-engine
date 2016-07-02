@@ -49,8 +49,13 @@ retrolambda {
 dependencies {
   compile fileTree(dir: "libs", include: ["*.jar"])
 
+  compile rootProject.ext.dependencies["com.google.firebase:firebase-database"]
+
   compile rootProject.ext.dependencies["io.reactivex:rxandroid"]
   compile rootProject.ext.dependencies["io.reactivex:rxjava"]
+
+  testCompile rootProject.ext.sampleDependencies["junit:junit"]
+
 }
 
 apply from: "https://raw.githubusercontent.com/henrytao-me/bintray/master/installv1.gradle"

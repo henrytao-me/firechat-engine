@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.sample;
+package me.henrytao.firechatengine.sample.ui.base;
 
-import com.google.firebase.database.FirebaseDatabase;
-
-import android.app.Application;
-import android.content.Intent;
-
-import me.henrytao.firechatengine.sample.service.FirechatBackgroundService;
+import me.henrytao.mvvmlifecycle.MVVMViewModel;
 
 /**
- * Created by henrytao on 6/17/16.
+ * Created by henrytao on 7/1/16.
  */
-public class App extends Application {
+public abstract class BaseViewModel<T> extends MVVMViewModel<T> {
 
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-    startService(new Intent(this, FirechatBackgroundService.class));
-  }
 }

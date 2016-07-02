@@ -16,7 +16,7 @@
 
 <resources>
 
-  <string name="app_name" translatable="false">Bootstrap Android App</string>
+  <string name="app_name" translatable="false">Firechat Engine</string>
 
   <string name="text_short" translatable="false">Lorem ipsum dolor sit amet, ut duis lorem provident sed felis blandit, condimentum donec lectus ipsum et mauris,
     morbi porttitor interdum feugiat nulla donec sodales, vestibulum nisl primis a molestie vestibulum quam, sapien mauris metus risus

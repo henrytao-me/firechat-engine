@@ -19,6 +19,14 @@ apply plugin: "me.tatarka.retrolambda"
 apply from: "../jacoco.gradle"
 
 android {
+  dataBinding {
+    enabled = true
+  }
+
+  defaultConfig {
+    vectorDrawables.useSupportLibrary = true
+  }
+
   compileOptions {
     sourceCompatibility rootProject.ext.java.sourceCompatibility
     targetCompatibility rootProject.ext.java.targetCompatibility
@@ -33,15 +41,6 @@ android {
     targetSdkVersion rootProject.ext.android.targetSdkVersion
     versionCode rootProject.ext.android.versionCode
     versionName rootProject.ext.android.versionName
-  }
-
-  productFlavors {
-    develop {
-      applicationId rootProject.ext.android.applicationId + ".develop"
-    }
-    production {
-      applicationId rootProject.ext.android.applicationId
-    }
   }
 
   signingConfigs {
@@ -61,7 +60,6 @@ android {
       minifyEnabled false
       shrinkResources false
       pseudoLocalesEnabled false
-      applicationIdSuffix ".debug"
     }
     release {
       minifyEnabled true
@@ -104,6 +102,8 @@ dependencies {
     exclude group: "com.android.support"
   }
 
+  compile rootProject.ext.sampleDependencies["org.projectlombok:lombok"]
+
   compile(project(":firechat-engine")) {
     exclude group: "com.android.support"
   }
@@ -112,3 +112,5 @@ dependencies {
   testCompile rootProject.ext.sampleDependencies["org.robolectric:robolectric"]
   testCompile rootProject.ext.sampleDependencies["org.robolectric:shadows-support-v4"]
 }
+
+apply plugin: "com.google.gms.google-services"

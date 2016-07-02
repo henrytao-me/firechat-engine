@@ -67,6 +67,8 @@ ext {
   ]
 
   dependencies = [
+      "com.google.firebase:firebase-database": "com.google.firebase:firebase-database:9.2.0",
+
       "io.reactivex:rxandroid"               : "io.reactivex:rxandroid:1.2.1",
       "io.reactivex:rxjava"                  : "io.reactivex:rxjava:1.1.6"
   ]
@@ -81,6 +83,8 @@ ext {
       "me.henrytao:mvvm-life-cycle"        : "me.henrytao:mvvm-life-cycle:2.3.0",
       "me.henrytao:recyclerview"           : "me.henrytao:recyclerview:3.0.7",
       "me.henrytao:smooth-app-bar-layout"  : "me.henrytao:smooth-app-bar-layout:3.0.0",
+
+      "org.projectlombok:lombok"           : "org.projectlombok:lombok:1.16.8",
 
       "junit:junit"                        : "junit:junit:4.12",
       "org.robolectric:robolectric"        : "org.robolectric:robolectric:3.0",
