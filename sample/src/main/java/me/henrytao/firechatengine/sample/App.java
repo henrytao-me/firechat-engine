@@ -18,8 +18,10 @@ package me.henrytao.firechatengine.sample;
 
 import com.google.firebase.database.FirebaseDatabase;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Intent;
+import android.content.SharedPreferences;
 
 import me.henrytao.firechatengine.sample.service.FirechatBackgroundService;
 
@@ -28,10 +30,18 @@ import me.henrytao.firechatengine.sample.service.FirechatBackgroundService;
  */
 public class App extends Application {
 
+  @SuppressLint("CommitPrefEdits")
   @Override
   public void onCreate() {
     super.onCreate();
+
+    //SharedPreferences sharedPreferences = getSharedPreferences("test", MODE_PRIVATE);
+    //if (!sharedPreferences.getBoolean("init", false)) {
+    //
+    //  sharedPreferences.edit().putBoolean("init", true).commit();
+    //}
+
     FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-    startService(new Intent(this, FirechatBackgroundService.class));
+    //startService(new Intent(this, FirechatBackgroundService.class));
   }
 }

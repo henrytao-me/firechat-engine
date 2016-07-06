@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import me.henrytao.firechatengine.core.FirechatReference;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.sample.util.Logger;
@@ -53,6 +54,7 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
   public ChatViewModel() {
     mData = new ArrayList<>();
     mLogger = Logger.newInstance(Logger.LogLevel.VERBOSE);
+
     mMessagesRef = FirebaseDatabase.getInstance().getReference().child("messages");
 
     DatabaseReference offsetRef = FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset");
@@ -71,6 +73,17 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
     });
 
     manageSubscription(Observable.timer(500, TimeUnit.MILLISECONDS).subscribe(aLong -> {
+
+      //FirechatReference<ChatMessage> ref = new FirechatReference.Builder<>(ChatMessage.class, "messages")
+      //    .limitToLast(5)
+      //    .build();
+      //ref.observe().subscribe(chatMessage -> {
+      //
+      //});
+      //ref.next(5).observe().subscribe(chatMessage -> {
+      //
+      //});
+
       //mMessagesRef.orderByPriority().limitToLast(10).addValueEventListener(new ValueEventListener() {
       //  @Override
       //  public void onCancelled(DatabaseError databaseError) {
@@ -86,11 +99,12 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
       //    setState(State.LOADED_MESSAGE);
       //  }
       //});
+
       mMessagesRef.orderByPriority().addChildEventListener(new ChildEventListener() {
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-
+          mLogger.d("custom onCancelled: %s", databaseError.toString());
         }
 
         @Override

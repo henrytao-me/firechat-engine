@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.sample.data.model;
+package me.henrytao.firechatengine.core;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import me.henrytao.firechatengine.core.model.Message;
+import me.henrytao.firechatengine.core.model.Room;
+import rx.Observable;
 
 /**
- * Created by henrytao on 7/1/16.
+ * Created by henrytao on 7/2/16.
  */
-@Accessors(prefix = "m")
-public class ChatMessage implements Message {
+public interface Firechat {
 
-  @Getter @Setter
-  String mMessage;
+  <TM extends Message> Observable<TM> createMessage(TM message, String roomKey);
 
-  public ChatMessage() {
-  }
+  <TR extends Room> Observable<TR> createRoom(TR room);
 
-  public ChatMessage(String message) {
-    mMessage = message;
-  }
+  <TM extends Message> Observable<TM> observeMessages(Class<TM> messageClass, String roomKey);
+
+  <TR extends Room> Observable<TR> observeRoom(Class<TR> roomClass, String roomKey);
+
+  <TR extends Room> Observable<TR> observeRooms(Class<TR> roomClass);
 }

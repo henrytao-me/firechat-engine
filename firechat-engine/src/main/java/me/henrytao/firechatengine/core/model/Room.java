@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.sample.data.model;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import me.henrytao.firechatengine.core.model.Message;
+package me.henrytao.firechatengine.core.model;
 
 /**
- * Created by henrytao on 7/1/16.
+ * Created by henrytao on 7/2/16.
  */
-@Accessors(prefix = "m")
-public class ChatMessage implements Message {
+public interface Room {
 
-  @Getter @Setter
-  String mMessage;
-
-  public ChatMessage() {
-  }
-
-  public ChatMessage(String message) {
-    mMessage = message;
-  }
 }
