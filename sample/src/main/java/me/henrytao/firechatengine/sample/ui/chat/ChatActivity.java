@@ -74,6 +74,7 @@ public class ChatActivity extends BaseActivity {
   private void onStateChanged(ChatViewModel.State name, Map<String, Object> data) {
     switch (name) {
       case ADDED_MESSAGE:
+        mAdapter.notifyItemInserted(mAdapter.getItemCount() - 1);
         break;
       case LOADED_MESSAGE:
         mAdapter.notifyDataSetChanged();

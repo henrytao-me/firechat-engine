@@ -16,7 +16,6 @@
 
 package me.henrytao.firechatengine;
 
-import me.henrytao.firechatengine.core.FirechatReference;
 import me.henrytao.firechatengine.core.model.Message;
 import me.henrytao.firechatengine.core.model.Room;
 import rx.Observable;

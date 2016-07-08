@@ -41,7 +41,7 @@ public class App extends Application {
     //  sharedPreferences.edit().putBoolean("init", true).commit();
     //}
 
-    FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+    //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
     //startService(new Intent(this, FirechatBackgroundService.class));
   }
 }

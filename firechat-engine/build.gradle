@@ -55,7 +55,6 @@ dependencies {
   compile rootProject.ext.dependencies["io.reactivex:rxjava"]
 
   testCompile rootProject.ext.sampleDependencies["junit:junit"]
-
 }
 
 apply from: "https://raw.githubusercontent.com/henrytao-me/bintray/master/installv1.gradle"
