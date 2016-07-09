@@ -77,7 +77,9 @@ public class FirechatReference<T> {
 
   public Observable<T> observe() {
     Observable<T> observable = Observable.create(subscriber -> {
-      mSubscriptionManager.manageSubscription(retrieve().subscribe(t -> SubscriptionUtils.onNext(subscriber, t)));
+      mSubscriptionManager.manageSubscription(retrieve().subscribe(
+          t -> SubscriptionUtils.onNext(subscriber, t),
+          throwable -> SubscriptionUtils.onError(subscriber, throwable)));
     });
     return observable.doOnUnsubscribe(this::onUnsubscribe);
   }
@@ -120,17 +122,31 @@ public class FirechatReference<T> {
           }
           return FirechatUtils.observeSingleValueEvent(query)
               .flatMap(dataSnapshot -> {
-                Query listener = null;
-                if (dataSnapshot.getChildrenCount() == 0) {
-                  listener = getQuery();
-                  if (startAt > DEFAULT_START_AT) {
-                    listener = listener.startAt(startAt);
-                  }
-                }
                 List<DataSnapshot> data = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                   data.add(snapshot);
                 }
+                Query listener = null;
+                int size = data.size();
+                if (size == 0) {
+                  if (endAt == DEFAULT_END_AT) {
+                    listener = getQuery();
+                    if (startAt > DEFAULT_START_AT) {
+                      listener = listener.startAt(startAt);
+                    }
+                    mNextStartAtSubject.onNext(startAt);
+                    mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
+                  }
+                } else {
+
+                }
+
+                if (size == 0 && endAt == DEFAULT_END_AT) {
+
+                } else if (size > 0) {
+
+                }
+
                 mNextStartAtSubject.onNext(startAt);
                 mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
                 if (endAt == DEFAULT_END_AT) {

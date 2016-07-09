@@ -22,6 +22,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import android.util.Log;
+
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
 
@@ -47,21 +49,25 @@ public class FirechatUtils {
       query.addChildEventListener(new ChildEventListener() {
         @Override
         public void onCancelled(DatabaseError databaseError) {
+          Log.d("custom onCancelled", String.format("%s", databaseError));
           SubscriptionUtils.onError(subscriber, databaseError.toException());
         }
 
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+          Log.d("custom onChildAdded", String.format("%s - %s", dataSnapshot, s));
           SubscriptionUtils.onNext(subscriber, dataSnapshot);
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+          Log.d("custom onChildChanged", String.format("%s - %s", dataSnapshot, s));
           SubscriptionUtils.onNext(subscriber, dataSnapshot);
         }
 
         @Override
         public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+          Log.d("custom onChildMoved", String.format("%s - %s", dataSnapshot, s));
           SubscriptionUtils.onNext(subscriber, dataSnapshot);
         }
 
