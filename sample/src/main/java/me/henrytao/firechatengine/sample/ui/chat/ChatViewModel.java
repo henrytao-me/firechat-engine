@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import me.henrytao.firechatengine.internal.FirecacheReference;
+import me.henrytao.firechatengine.internal.firecache.FirecacheReference;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.sample.util.Logger;
@@ -102,73 +102,98 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
       //});
 
       FirecacheReference ref = new FirecacheReference.Builder(mMessagesRef)
-          .addValueEventListener(null)
-          .addChildEventListener(null)
-          .addListenerForSingleValueEvent(null)
+          .limitToLast(5)
+          .addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+              mLogger.d("custom onCancelled: %s", databaseError);
+            }
+
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+              mLogger.d("custom onChildAdded: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+              addData(dataSnapshot.getValue(ChatMessage.class));
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+              mLogger.d("custom onChildChanged: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+              addData(dataSnapshot.getValue(ChatMessage.class));
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+              mLogger.d("custom onChildMoved: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+              addData(dataSnapshot.getValue(ChatMessage.class));
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+              mLogger.d("custom onChildRemoved: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+            }
+          })
           .build();
-      ref.removeEventListeners();
-      ref.reload();
 
-      mMessagesRef.orderByPriority().startAt(1.468063342215E12, "-KMEO5Ql63YzYJePsoVZ").limitToFirst(1).addChildEventListener(new ChildEventListener() {
-        @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-          mLogger.d("custom onChildAdded special: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
-        }
+      //mMessagesRef.orderByPriority().startAt(1.468063342215E12, "-KMEO5Ql63YzYJePsoVZ").limitToFirst(1).addChildEventListener(new ChildEventListener() {
+      //  @Override
+      //  public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+      //    mLogger.d("custom onChildAdded special: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+      //  }
+      //
+      //  @Override
+      //  public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+      //    mLogger.d("custom onChildChanged special: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+      //  }
+      //
+      //  @Override
+      //  public void onChildRemoved(DataSnapshot dataSnapshot) {
+      //
+      //  }
+      //
+      //  @Override
+      //  public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+      //    mLogger.d("custom onChildMoved special: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+      //  }
+      //
+      //  @Override
+      //  public void onCancelled(DatabaseError databaseError) {
+      //
+      //  }
+      //});
 
-        @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-          mLogger.d("custom onChildChanged special: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
-        }
-
-        @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-          mLogger.d("custom onChildMoved special: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
-        }
-
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-
-        }
-      });
-
-      mMessagesRef.orderByPriority().limitToLast(5).addChildEventListener(new ChildEventListener() {
-
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-          mLogger.d("custom onCancelled: %s", databaseError.toString());
-        }
-
-        @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-          ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
-          mData.add(message);
-          mLogger.d("custom onChildAdded: %s - %s - %s - %s", dataSnapshot.getPriority(), message.getMessage(), s, dataSnapshot.getRef());
-          setState(State.ADDED_MESSAGE);
-        }
-
-        @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-          ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
-          mLogger.d("custom onChildChanged: %s - %s - %s - %s", dataSnapshot.getPriority(), message.getMessage(), s, dataSnapshot.getRef());
-        }
-
-        @Override
-        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-          ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
-          mLogger.d("custom onChildMoved: %s - %s - %s - %s", dataSnapshot.getPriority(), message.getMessage(), s, dataSnapshot.getRef());
-        }
-
-        @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-          ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
-          mLogger.d("custom onChildMoved: %s - %s", dataSnapshot.getPriority(), message.getMessage());
-        }
-      });
+      //mMessagesRef.orderByPriority().limitToLast(5).addChildEventListener(new ChildEventListener() {
+      //
+      //  @Override
+      //  public void onCancelled(DatabaseError databaseError) {
+      //    mLogger.d("custom onCancelled: %s", databaseError.toString());
+      //  }
+      //
+      //  @Override
+      //  public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+      //    ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
+      //    mData.add(message);
+      //    mLogger.d("custom onChildAdded: %s - %s - %s - %s", dataSnapshot.getPriority(), message.getMessage(), s, dataSnapshot.getRef());
+      //    setState(State.ADDED_MESSAGE);
+      //  }
+      //
+      //  @Override
+      //  public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+      //    ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
+      //    mLogger.d("custom onChildChanged: %s - %s - %s - %s", dataSnapshot.getPriority(), message.getMessage(), s, dataSnapshot.getRef());
+      //  }
+      //
+      //  @Override
+      //  public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+      //    ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
+      //    mLogger.d("custom onChildMoved: %s - %s - %s - %s", dataSnapshot.getPriority(), message.getMessage(), s, dataSnapshot.getRef());
+      //  }
+      //
+      //  @Override
+      //  public void onChildRemoved(DataSnapshot dataSnapshot) {
+      //    ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
+      //    mLogger.d("custom onChildMoved: %s - %s", dataSnapshot.getPriority(), message.getMessage());
+      //  }
+      //});
     }), UnsubscribeLifeCycle.DESTROY);
   }
 
@@ -177,17 +202,16 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
   }
 
   public void sendMessage() {
-    mMessagesRef.child("-KMEO5Ql63YzYJePsoVZ").setPriority(ServerValue.TIMESTAMP);
-
-    //String message = this.message.get();
-    //if (message != null && message.length() > 0) {
-    //  ChatMessage chatMessage = new ChatMessage(message);
-    //  DatabaseReference tmp = mMessagesRef.push();
-    //  tmp.setValue(chatMessage, ServerValue.TIMESTAMP, (databaseError, databaseReference) -> {
-    //    Log.d("custom setValue", String.format("%s - %s", databaseError, databaseReference));
-    //  });
-    //  this.message.set(null);
-    //}
+    //mMessagesRef.child("-KMEO5Ql63YzYJePsoVZ").setPriority(ServerValue.TIMESTAMP);
+    String message = this.message.get();
+    if (message != null && message.length() > 0) {
+      ChatMessage chatMessage = new ChatMessage(message);
+      DatabaseReference tmp = mMessagesRef.push();
+      tmp.setValue(chatMessage, ServerValue.TIMESTAMP, (databaseError, databaseReference) -> {
+        Log.d("custom setValue", String.format("%s - %s", databaseError, databaseReference));
+      });
+      this.message.set(null);
+    }
   }
 
   private void addData(ChatMessage chatMessage) {
