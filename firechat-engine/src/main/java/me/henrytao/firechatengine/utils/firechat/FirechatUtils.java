@@ -16,14 +16,12 @@
 
 package me.henrytao.firechatengine.utils.firechat;
 
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import android.util.Log;
-
+import me.henrytao.firechatengine.internal.firecache.Config;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
 
@@ -40,47 +38,60 @@ public class FirechatUtils {
     return 0d;
   }
 
-  public static Observable<DataSnapshot> observeChildEvent(Query query) {
-    return Observable.create(subscriber -> {
-      if (query == null) {
-        SubscriptionUtils.onComplete(subscriber);
-        return;
-      }
-      query.addChildEventListener(new ChildEventListener() {
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-          Log.d("custom onCancelled", String.format("%s", databaseError));
-          SubscriptionUtils.onError(subscriber, databaseError.toException());
-        }
-
-        @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-          Log.d("custom onChildAdded", String.format("%s - %s", dataSnapshot, s));
-          SubscriptionUtils.onNext(subscriber, dataSnapshot);
-        }
-
-        @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-          Log.d("custom onChildChanged", String.format("%s - %s", dataSnapshot, s));
-          SubscriptionUtils.onNext(subscriber, dataSnapshot);
-        }
-
-        @Override
-        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-          Log.d("custom onChildMoved", String.format("%s - %s", dataSnapshot, s));
-          SubscriptionUtils.onNext(subscriber, dataSnapshot);
-        }
-
-        @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-          // do nothing
-        }
-      });
-    });
+  public static Query getQuery(Query query, double startAt, double endAt, int limitToLast) {
+    if (startAt != Config.DEFAULT_START_AT) {
+      query = query.startAt(startAt);
+    }
+    if (endAt != Config.DEFAULT_END_AT) {
+      query = query.endAt(endAt);
+    }
+    if (limitToLast != Config.DEFAULT_LIMIT_TO_LAST) {
+      query = query.limitToLast(limitToLast);
+    }
+    return query;
   }
 
+  //public static Observable<DataSnapshot> observeChildEvent(Query query) {
+  //  return Observable.create(subscriber -> {
+  //    if (query == null) {
+  //      SubscriptionUtils.onComplete(subscriber);
+  //      return;
+  //    }
+  //    query.addChildEventListener(new ChildEventListener() {
+  //      @Override
+  //      public void onCancelled(DatabaseError databaseError) {
+  //        Log.d("custom onCancelled", String.format("%s", databaseError));
+  //        SubscriptionUtils.onError(subscriber, databaseError.toException());
+  //      }
+  //
+  //      @Override
+  //      public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+  //        Log.d("custom onChildAdded", String.format("%s - %s", dataSnapshot, s));
+  //        SubscriptionUtils.onNext(subscriber, dataSnapshot);
+  //      }
+  //
+  //      @Override
+  //      public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+  //        Log.d("custom onChildChanged", String.format("%s - %s", dataSnapshot, s));
+  //        SubscriptionUtils.onNext(subscriber, dataSnapshot);
+  //      }
+  //
+  //      @Override
+  //      public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+  //        Log.d("custom onChildMoved", String.format("%s - %s", dataSnapshot, s));
+  //        SubscriptionUtils.onNext(subscriber, dataSnapshot);
+  //      }
+  //
+  //      @Override
+  //      public void onChildRemoved(DataSnapshot dataSnapshot) {
+  //        // do nothing
+  //      }
+  //    });
+  //  });
+  //}
 
-  public static Observable<DataSnapshot> observeSingleValueEvent(Query query) {
+
+  public static Observable<DataSnapshot> getSingleValueEvent(Query query) {
     return Observable.create(subscriber -> {
       if (query == null) {
         SubscriptionUtils.onComplete(subscriber);

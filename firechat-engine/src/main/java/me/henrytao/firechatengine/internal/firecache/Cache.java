@@ -17,7 +17,7 @@
 package me.henrytao.firechatengine.internal.firecache;
 
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.Query;
+import com.google.firebase.database.DatabaseReference;
 
 import java.util.List;
 
@@ -45,19 +45,25 @@ public class Cache {
     return cache;
   }
 
-  public Observable<DataSnapshot> get(Query query) {
+  public Observable<DataSnapshot> get(DatabaseReference reference) {
     return Observable.create(subscriber -> {
       SubscriptionUtils.onError(subscriber, new NoDataFoundException());
     });
   }
 
-  public Observable<List<DataSnapshot>> get(Query query, double startAt, double endAt, int limitToFirst, int limitToLast) {
+  public Observable<List<DataSnapshot>> get(DatabaseReference reference, double startAt, double endAt, int limitToLast) {
     return Observable.create(subscriber -> {
       SubscriptionUtils.onError(subscriber, new NoDataFoundException());
     });
   }
 
-  public Observable<DataSnapshot> set(Query query, DataSnapshot dataSnapshot) {
+  public Observable<DataSnapshot> set(DatabaseReference reference, DataSnapshot dataSnapshot) {
+    return Observable.create(subscriber -> {
+      SubscriptionUtils.onNextAndComplete(subscriber, dataSnapshot);
+    });
+  }
+
+  public Observable<DataSnapshot> set(DatabaseReference reference, String key, DataSnapshot dataSnapshot) {
     return Observable.create(subscriber -> {
       SubscriptionUtils.onNextAndComplete(subscriber, dataSnapshot);
     });

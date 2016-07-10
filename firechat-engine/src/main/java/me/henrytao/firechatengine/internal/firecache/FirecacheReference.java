@@ -24,6 +24,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import me.henrytao.firechatengine.internal.exception.DatabaseErrorException;
@@ -38,19 +39,9 @@ import rx.Observable;
  */
 public class FirecacheReference {
 
-  private static final double DEFAULT_END_AT = 0;
-
-  private static final int DEFAULT_LIMIT_TO_FIRST = 0;
-
-  private static final int DEFAULT_LIMIT_TO_LAST = 0;
-
-  private static final double DEFAULT_START_AT = 0;
-
   private final Cache mCache;
 
   private final double mEndAt;
-
-  private final int mLimitToFirst;
 
   private final int mLimitToLast;
 
@@ -68,18 +59,18 @@ public class FirecacheReference {
 
   private ValueEventListener mValueEventListener;
 
-  protected FirecacheReference(DatabaseReference ref, double startAt, double endAt, int limitToFirst, int limitToLast,
+  protected FirecacheReference(DatabaseReference ref, double startAt, double endAt, int limitToLast,
       ValueEventListener singleValueEventListener, ValueEventListener valueEventListener, ChildEventListener childEventListener) {
     mRef = ref;
     mStartAt = startAt;
     mEndAt = endAt;
-    mLimitToFirst = limitToFirst;
     mLimitToLast = limitToLast;
     mSingleValueEventListener = singleValueEventListener;
     mValueEventListener = valueEventListener;
     mChildEventListener = childEventListener;
 
     mCache = Cache.getInstance();
+
     mSubscriptionManager = new SubscriptionManager();
 
     reload();
@@ -87,16 +78,13 @@ public class FirecacheReference {
 
   public void reload() {
     mQuery = mRef.orderByPriority();
-    if (mStartAt > DEFAULT_START_AT) {
+    if (mStartAt != Config.DEFAULT_START_AT) {
       mQuery = mQuery.startAt(mStartAt);
     }
-    if (mEndAt > DEFAULT_END_AT) {
+    if (mEndAt != Config.DEFAULT_END_AT) {
       mQuery = mQuery.endAt(mEndAt);
     }
-    if (mLimitToFirst > DEFAULT_LIMIT_TO_FIRST) {
-      mQuery = mQuery.limitToFirst(mLimitToFirst);
-    }
-    if (mLimitToLast > DEFAULT_LIMIT_TO_LAST) {
+    if (mLimitToLast != Config.DEFAULT_LIMIT_TO_LAST) {
       mQuery = mQuery.limitToLast(mLimitToLast);
     }
     removeEventListeners(false);
@@ -109,57 +97,27 @@ public class FirecacheReference {
     removeEventListeners(true);
   }
 
-  private void loadChildEvent() {
+  protected void loadChildEvent() {
     if (mChildEventListener == null) {
       return;
     }
-    Observable<DataSnapshotWrapper> observable = mCache.get(mQuery, mStartAt, mEndAt, mLimitToFirst, mLimitToLast)
+    Observable<Wrapper> observable = mCache.get(mRef, mStartAt, mEndAt, mLimitToLast)
         .onErrorReturn(throwable -> new ArrayList<>())
         .flatMap(cachedSnapshots -> {
-          Query query = mQuery;
-          if (cachedSnapshots.size() > 0) {
-            double cachedStartAt = FirechatUtils.getPriority(cachedSnapshots.get(0));
-            double cachedEndAt = FirechatUtils.getPriority(cachedSnapshots.get(cachedSnapshots.size() - 1));
-            if (mLimitToFirst > DEFAULT_LIMIT_TO_FIRST) {
-              query = mRef.orderByPriority().endAt(cachedStartAt - 1);
-            } else {
-              query = mRef.orderByPriority().startAt(cachedEndAt + 1);
-            }
-          }
-          final Query listener = query;
+          Observable<Wrapper> syncObservable =
+              syncSnapshotAfterHavingCache(cachedSnapshots)
+                  .flatMap(newSnapshots -> Observable.just(newSnapshots)
+                      .flatMapIterable(dataSnapshots -> dataSnapshots)
+                      .map(dataSnapshot -> new Wrapper(dataSnapshot, Wrapper.Type.ON_CHILD_ADDED))
+                      .mergeWith(createListenerIfNecessary(cachedSnapshots, newSnapshots)));
           return Observable
               .just(cachedSnapshots)
               .flatMapIterable(dataSnapshots -> dataSnapshots)
-              .map(dataSnapshot -> new DataSnapshotWrapper(dataSnapshot, DataSnapshotWrapper.Type.ON_CHILD_ADDED))
-              .mergeWith(Observable.create(subscriber -> {
-                listener.addChildEventListener(new ChildEventListener() {
-                  @Override
-                  public void onCancelled(DatabaseError databaseError) {
-                    SubscriptionUtils.onError(subscriber, new DatabaseErrorException(databaseError));
-                  }
-
-                  @Override
-                  public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    SubscriptionUtils.onNext(subscriber, new DataSnapshotWrapper(dataSnapshot, s, DataSnapshotWrapper.Type.ON_CHILD_ADDED));
-                  }
-
-                  @Override
-                  public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                    SubscriptionUtils
-                        .onNext(subscriber, new DataSnapshotWrapper(dataSnapshot, s, DataSnapshotWrapper.Type.ON_CHILD_CHANGED));
-                  }
-
-                  @Override
-                  public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                    SubscriptionUtils.onNext(subscriber, new DataSnapshotWrapper(dataSnapshot, s, DataSnapshotWrapper.Type.ON_CHILD_MOVED));
-                  }
-
-                  @Override
-                  public void onChildRemoved(DataSnapshot dataSnapshot) {
-                    SubscriptionUtils.onNext(subscriber, new DataSnapshotWrapper(dataSnapshot, DataSnapshotWrapper.Type.ON_CHILD_REMOVED));
-                  }
-                });
-              }));
+              .map(dataSnapshot -> new Wrapper(dataSnapshot, Wrapper.Type.ON_CHILD_ADDED))
+              .mergeWith(syncObservable
+                  .flatMap(wrapper -> mCache
+                      .set(mRef, wrapper.dataSnapshot.getKey(), wrapper.dataSnapshot)
+                      .map(dataSnapshot -> new Wrapper(dataSnapshot, wrapper.type))));
         });
     mSubscriptionManager.manageSubscription(observable
         .compose(Transformer.applyJobExecutorScheduler())
@@ -187,7 +145,7 @@ public class FirecacheReference {
         }));
   }
 
-  private void loadSingleValueEvent() {
+  protected void loadSingleValueEvent() {
     if (mSingleValueEventListener == null) {
       return;
     }
@@ -215,12 +173,12 @@ public class FirecacheReference {
         }));
   }
 
-  private void loadValueEvent() {
+  protected void loadValueEvent() {
     if (mValueEventListener == null) {
       return;
     }
     final Stack<DataSnapshot> stack = new Stack<>();
-    Observable<DataSnapshot> observable = mCache.get(mQuery)
+    Observable<DataSnapshot> observable = mCache.get(mRef)
         .onErrorReturn(throwable -> null)
         .mergeWith(Observable.create(subscriber -> {
           mQuery.addValueEventListener(new ValueEventListener() {
@@ -248,7 +206,7 @@ public class FirecacheReference {
           return dataSnapshot.getPriority() != previousDataSnapshot.getPriority()
               || dataSnapshot.getValue() != previousDataSnapshot.getValue();
         })
-        .flatMap(dataSnapshot -> mCache.set(mQuery, dataSnapshot))
+        .flatMap(dataSnapshot -> mCache.set(mRef, dataSnapshot))
         .doOnUnsubscribe(stack::clear);
     mSubscriptionManager.manageSubscription(observable
         .compose(Transformer.applyJobExecutorScheduler())
@@ -263,7 +221,7 @@ public class FirecacheReference {
         }));
   }
 
-  private void removeEventListeners(boolean force) {
+  protected void removeEventListeners(boolean force) {
     if (mSingleValueEventListener != null) {
       mRef.removeEventListener(mSingleValueEventListener);
     }
@@ -281,21 +239,84 @@ public class FirecacheReference {
     mSubscriptionManager.unsubscribe();
   }
 
+  private Observable<Wrapper> createListenerIfNecessary(List<DataSnapshot> cachedSnapshots, List<DataSnapshot> newSnapshots) {
+    return Observable.create(subscriber -> {
+      if (mEndAt != Config.DEFAULT_END_AT) {
+        SubscriptionUtils.onComplete(subscriber);
+      } else {
+        DataSnapshot lastCachedSnapshot = cachedSnapshots.size() > 0 ? cachedSnapshots.get(cachedSnapshots.size() - 1) : null;
+        DataSnapshot lastNewSnapshot = newSnapshots.size() > 0 ? newSnapshots.get(newSnapshots.size() - 1) : null;
+        double startAt = lastNewSnapshot != null ? FirechatUtils.getPriority(lastNewSnapshot) + 1 :
+            (lastCachedSnapshot != null ? FirechatUtils.getPriority(lastCachedSnapshot) + 1 : Config.DEFAULT_START_AT);
+        FirechatUtils.getQuery(
+            mRef.orderByPriority(),
+            startAt,
+            Config.DEFAULT_END_AT,
+            startAt != Config.DEFAULT_START_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast)
+            .addChildEventListener(new ChildEventListener() {
+              @Override
+              public void onCancelled(DatabaseError databaseError) {
+                SubscriptionUtils.onError(subscriber, new DatabaseErrorException(databaseError));
+              }
+
+              @Override
+              public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                SubscriptionUtils.onNext(subscriber, new Wrapper(dataSnapshot, s, Wrapper.Type.ON_CHILD_ADDED));
+              }
+
+              @Override
+              public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                SubscriptionUtils
+                    .onNext(subscriber, new Wrapper(dataSnapshot, s, Wrapper.Type.ON_CHILD_CHANGED));
+              }
+
+              @Override
+              public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                SubscriptionUtils.onNext(subscriber, new Wrapper(dataSnapshot, s, Wrapper.Type.ON_CHILD_MOVED));
+              }
+
+              @Override
+              public void onChildRemoved(DataSnapshot dataSnapshot) {
+                SubscriptionUtils.onNext(subscriber, new Wrapper(dataSnapshot, Wrapper.Type.ON_CHILD_REMOVED));
+              }
+            });
+      }
+    });
+  }
+
+  private Observable<List<DataSnapshot>> syncSnapshotAfterHavingCache(List<DataSnapshot> cachedSnapshots) {
+    return Observable.just(true).flatMap(b -> {
+      DataSnapshot lastCachedSnapshot = cachedSnapshots.size() > 0 ? cachedSnapshots.get(cachedSnapshots.size() - 1) : null;
+      return FirechatUtils
+          .getSingleValueEvent(FirechatUtils.getQuery(
+              mRef.orderByPriority(),
+              lastCachedSnapshot != null ? FirechatUtils.getPriority(lastCachedSnapshot) + 1 : Config.DEFAULT_START_AT,
+              mEndAt,
+              mEndAt != Config.DEFAULT_END_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast
+          ))
+          .map(dataSnapshot -> {
+            List<DataSnapshot> data = new ArrayList<>();
+            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+              data.add(snapshot);
+            }
+            return data;
+          });
+    });
+  }
+
   public static class Builder {
 
     private final DatabaseReference mRef;
 
     private ChildEventListener mChildEventListener;
 
-    private double mEndAt = DEFAULT_END_AT;
+    private double mEndAt = Config.DEFAULT_END_AT;
 
-    private int mLimitToFirst;
-
-    private int mLimitToLast = DEFAULT_LIMIT_TO_LAST;
+    private int mLimitToLast = Config.DEFAULT_LIMIT_TO_LAST;
 
     private ValueEventListener mSingleValueEventListener;
 
-    private double mStartAt = DEFAULT_START_AT;
+    private double mStartAt = Config.DEFAULT_START_AT;
 
     private ValueEventListener mValueEventListener;
 
@@ -319,7 +340,7 @@ public class FirecacheReference {
     }
 
     public FirecacheReference build() {
-      FirecacheReference reference = new FirecacheReference(mRef, mStartAt, mEndAt, mLimitToFirst, mLimitToLast,
+      FirecacheReference reference = new FirecacheReference(mRef, mStartAt, mEndAt, mLimitToLast,
           mSingleValueEventListener, mValueEventListener, mChildEventListener);
       mSingleValueEventListener = null;
       mValueEventListener = null;
@@ -329,11 +350,6 @@ public class FirecacheReference {
 
     public Builder endAt(double endAt) {
       mEndAt = endAt;
-      return this;
-    }
-
-    public Builder limitToFirst(int limitToFirst) {
-      mLimitToFirst = limitToFirst;
       return this;
     }
 

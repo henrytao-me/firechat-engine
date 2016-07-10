@@ -100,7 +100,7 @@ public class FirechatReference<T> {
     return mStartAtSubject
         .flatMap(startAt -> {
           if (startAt == DEFAULT_START_AT) {
-            return FirechatUtils.observeSingleValueEvent(getQuery().limitToFirst(1)).map(dataSnapshot -> {
+            return FirechatUtils.getSingleValueEvent(getQuery().limitToFirst(1)).map(dataSnapshot -> {
               for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                 return FirechatUtils.getPriority(snapshot);
               }
@@ -120,7 +120,7 @@ public class FirechatReference<T> {
           if (mLimitToLast > DEFAULT_LIMIT_TO_LAST) {
             query = query.limitToLast(mLimitToLast);
           }
-          return FirechatUtils.observeSingleValueEvent(query)
+          return FirechatUtils.getSingleValueEvent(query)
               .flatMap(dataSnapshot -> {
                 List<DataSnapshot> data = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -153,8 +153,8 @@ public class FirechatReference<T> {
                   listener = getQuery().startAt(FirechatUtils.getPriority(data.get(data.size() - 1)) + 1d);
                 }
                 return Observable.just(data)
-                    .flatMapIterable(dataSnapshots -> dataSnapshots)
-                    .mergeWith(FirechatUtils.observeChildEvent(listener));
+                    .flatMapIterable(dataSnapshots -> dataSnapshots);
+                    //.mergeWith(FirechatUtils.observeChildEvent(listener));
               });
         })
         .flatMap(observable -> observable)

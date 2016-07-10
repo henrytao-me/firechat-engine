@@ -16,30 +16,14 @@
 
 package me.henrytao.firechatengine.internal.firecache;
 
-import com.google.firebase.database.DataSnapshot;
+/**
+ * Created by henrytao on 7/10/16.
+ */
+public class Config {
 
-public class DataSnapshotWrapper {
+  public static final double DEFAULT_END_AT = 0;
 
-  public final DataSnapshot dataSnapshot;
+  public static final int DEFAULT_LIMIT_TO_LAST = 0;
 
-  public final String previousKey;
-
-  public final Type type;
-
-  public DataSnapshotWrapper(DataSnapshot dataSnapshot, String previousKey, Type type) {
-    this.dataSnapshot = dataSnapshot;
-    this.previousKey = previousKey;
-    this.type = type;
-  }
-
-  public DataSnapshotWrapper(DataSnapshot dataSnapshot, Type onChildRemoved) {
-    this(dataSnapshot, null, onChildRemoved);
-  }
-
-  public enum Type {
-    ON_CHILD_ADDED,
-    ON_CHILD_CHANGED,
-    ON_CHILD_MOVED,
-    type, ON_CHILD_REMOVED
-  }
+  public static final double DEFAULT_START_AT = 0;
 }
