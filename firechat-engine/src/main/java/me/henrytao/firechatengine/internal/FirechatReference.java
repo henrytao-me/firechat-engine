@@ -97,68 +97,69 @@ public class FirechatReference<T> {
   }
 
   private Observable<T> retrieve() {
-    return mStartAtSubject
-        .flatMap(startAt -> {
-          if (startAt == DEFAULT_START_AT) {
-            return FirechatUtils.getSingleValueEvent(getQuery().limitToFirst(1)).map(dataSnapshot -> {
-              for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                return FirechatUtils.getPriority(snapshot);
-              }
-              return DEFAULT_END_AT;
-            });
-          }
-          return Observable.just(startAt);
-        })
-        .zipWith(mEndAtSubject, (startAt, endAt) -> {
-          Query query = getQuery();
-          if (startAt > DEFAULT_START_AT) {
-            query = query.startAt(startAt);
-          }
-          if (endAt > DEFAULT_END_AT) {
-            query = query.endAt(endAt);
-          }
-          if (mLimitToLast > DEFAULT_LIMIT_TO_LAST) {
-            query = query.limitToLast(mLimitToLast);
-          }
-          return FirechatUtils.getSingleValueEvent(query)
-              .flatMap(dataSnapshot -> {
-                List<DataSnapshot> data = new ArrayList<>();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                  data.add(snapshot);
-                }
-                Query listener = null;
-                int size = data.size();
-                if (size == 0) {
-                  if (endAt == DEFAULT_END_AT) {
-                    listener = getQuery();
-                    if (startAt > DEFAULT_START_AT) {
-                      listener = listener.startAt(startAt);
-                    }
-                    mNextStartAtSubject.onNext(startAt);
-                    mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
-                  }
-                } else {
-
-                }
-
-                if (size == 0 && endAt == DEFAULT_END_AT) {
-
-                } else if (size > 0) {
-
-                }
-
-                mNextStartAtSubject.onNext(startAt);
-                mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
-                if (endAt == DEFAULT_END_AT) {
-                  listener = getQuery().startAt(FirechatUtils.getPriority(data.get(data.size() - 1)) + 1d);
-                }
-                return Observable.just(data)
-                    .flatMapIterable(dataSnapshots -> dataSnapshots);
-                    //.mergeWith(FirechatUtils.observeChildEvent(listener));
-              });
-        })
-        .flatMap(observable -> observable)
-        .map(dataSnapshot -> dataSnapshot.getValue(mClass));
+    return null;
+    //return mStartAtSubject
+    //    .flatMap(startAt -> {
+    //      if (startAt == DEFAULT_START_AT) {
+    //        return FirechatUtils.observeSingleValueEvent(getQuery().limitToFirst(1)).map(dataSnapshot -> {
+    //          for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+    //            return FirechatUtils.getPriority(snapshot);
+    //          }
+    //          return DEFAULT_END_AT;
+    //        });
+    //      }
+    //      return Observable.just(startAt);
+    //    })
+    //    .zipWith(mEndAtSubject, (startAt, endAt) -> {
+    //      Query query = getQuery();
+    //      if (startAt > DEFAULT_START_AT) {
+    //        query = query.startAt(startAt);
+    //      }
+    //      if (endAt > DEFAULT_END_AT) {
+    //        query = query.endAt(endAt);
+    //      }
+    //      if (mLimitToLast > DEFAULT_LIMIT_TO_LAST) {
+    //        query = query.limitToLast(mLimitToLast);
+    //      }
+    //      return FirechatUtils.observeSingleValueEvent(query)
+    //          .flatMap(dataSnapshot -> {
+    //            List<DataSnapshot> data = new ArrayList<>();
+    //            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+    //              data.add(snapshot);
+    //            }
+    //            Query listener = null;
+    //            int size = data.size();
+    //            if (size == 0) {
+    //              if (endAt == DEFAULT_END_AT) {
+    //                listener = getQuery();
+    //                if (startAt > DEFAULT_START_AT) {
+    //                  listener = listener.startAt(startAt);
+    //                }
+    //                mNextStartAtSubject.onNext(startAt);
+    //                mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
+    //              }
+    //            } else {
+    //
+    //            }
+    //
+    //            if (size == 0 && endAt == DEFAULT_END_AT) {
+    //
+    //            } else if (size > 0) {
+    //
+    //            }
+    //
+    //            mNextStartAtSubject.onNext(startAt);
+    //            mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
+    //            if (endAt == DEFAULT_END_AT) {
+    //              listener = getQuery().startAt(FirechatUtils.getPriority(data.get(data.size() - 1)) + 1d);
+    //            }
+    //            return Observable.just(data)
+    //                .flatMapIterable(dataSnapshots -> dataSnapshots);
+    //                //.mergeWith(FirechatUtils.observeChildEvent(listener));
+    //          });
+    //    })
+    //    .flatMap(observable -> observable)
+    //    .map(dataSnapshot -> dataSnapshot.getValue(mClass));
   }
 
   public static class Builder<T> {

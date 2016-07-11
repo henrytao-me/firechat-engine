@@ -18,7 +18,6 @@ package me.henrytao.firechatengine.internal.firecache;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
@@ -108,16 +107,16 @@ public class FirecacheReference {
               syncSnapshotAfterHavingCache(cachedSnapshots)
                   .flatMap(newSnapshots -> Observable.just(newSnapshots)
                       .flatMapIterable(dataSnapshots -> dataSnapshots)
-                      .map(dataSnapshot -> new Wrapper(dataSnapshot, Wrapper.Type.ON_CHILD_ADDED))
+                      .map(Wrapper::create)
                       .mergeWith(createListenerIfNecessary(cachedSnapshots, newSnapshots)));
           return Observable
               .just(cachedSnapshots)
               .flatMapIterable(dataSnapshots -> dataSnapshots)
-              .map(dataSnapshot -> new Wrapper(dataSnapshot, Wrapper.Type.ON_CHILD_ADDED))
+              .map(Wrapper::create)
               .mergeWith(syncObservable
                   .flatMap(wrapper -> mCache
                       .set(mRef, wrapper.dataSnapshot.getKey(), wrapper.dataSnapshot)
-                      .map(dataSnapshot -> new Wrapper(dataSnapshot, wrapper.type))));
+                      .map(dataSnapshot -> Wrapper.create(dataSnapshot, wrapper.type))));
         });
     mSubscriptionManager.manageSubscription(observable
         .compose(Transformer.applyJobExecutorScheduler())
@@ -149,22 +148,9 @@ public class FirecacheReference {
     if (mSingleValueEventListener == null) {
       return;
     }
-    Observable<DataSnapshot> observable = Observable.create(subscriber -> {
-      mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-          SubscriptionUtils.onError(subscriber, new DatabaseErrorException(databaseError));
-        }
-
-        @Override
-        public void onDataChange(DataSnapshot dataSnapshot) {
-          SubscriptionUtils.onNextAndComplete(subscriber, dataSnapshot);
-        }
-      });
-    });
-    mSubscriptionManager.manageSubscription(observable
+    mSubscriptionManager.manageSubscription(FirechatUtils.observeSingleValueEvent(mQuery)
         .compose(Transformer.applyJobExecutorScheduler())
-        .subscribe(mSingleValueEventListener::onDataChange, throwable -> {
+        .subscribe(wrapper -> mSingleValueEventListener.onDataChange(wrapper.dataSnapshot), throwable -> {
           if (throwable instanceof DatabaseErrorException) {
             mSingleValueEventListener.onCancelled(((DatabaseErrorException) throwable).getException());
           } else {
@@ -180,19 +166,7 @@ public class FirecacheReference {
     final Stack<DataSnapshot> stack = new Stack<>();
     Observable<DataSnapshot> observable = mCache.get(mRef)
         .onErrorReturn(throwable -> null)
-        .mergeWith(Observable.create(subscriber -> {
-          mQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-              SubscriptionUtils.onError(subscriber, new DatabaseErrorException(databaseError));
-            }
-
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-              SubscriptionUtils.onNext(subscriber, dataSnapshot);
-            }
-          });
-        }))
+        .mergeWith(FirechatUtils.observeValueEvent(mQuery).map(wrapper -> wrapper.dataSnapshot))
         .filter(dataSnapshot -> {
           if (dataSnapshot == null) {
             return false;
@@ -240,63 +214,37 @@ public class FirecacheReference {
   }
 
   private Observable<Wrapper> createListenerIfNecessary(List<DataSnapshot> cachedSnapshots, List<DataSnapshot> newSnapshots) {
-    return Observable.create(subscriber -> {
-      if (mEndAt != Config.DEFAULT_END_AT) {
-        SubscriptionUtils.onComplete(subscriber);
-      } else {
-        DataSnapshot lastCachedSnapshot = cachedSnapshots.size() > 0 ? cachedSnapshots.get(cachedSnapshots.size() - 1) : null;
-        DataSnapshot lastNewSnapshot = newSnapshots.size() > 0 ? newSnapshots.get(newSnapshots.size() - 1) : null;
-        double startAt = lastNewSnapshot != null ? FirechatUtils.getPriority(lastNewSnapshot) + 1 :
-            (lastCachedSnapshot != null ? FirechatUtils.getPriority(lastCachedSnapshot) + 1 : Config.DEFAULT_START_AT);
-        FirechatUtils.getQuery(
-            mRef.orderByPriority(),
-            startAt,
-            Config.DEFAULT_END_AT,
-            startAt != Config.DEFAULT_START_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast)
-            .addChildEventListener(new ChildEventListener() {
-              @Override
-              public void onCancelled(DatabaseError databaseError) {
-                SubscriptionUtils.onError(subscriber, new DatabaseErrorException(databaseError));
-              }
-
-              @Override
-              public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                SubscriptionUtils.onNext(subscriber, new Wrapper(dataSnapshot, s, Wrapper.Type.ON_CHILD_ADDED));
-              }
-
-              @Override
-              public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                SubscriptionUtils
-                    .onNext(subscriber, new Wrapper(dataSnapshot, s, Wrapper.Type.ON_CHILD_CHANGED));
-              }
-
-              @Override
-              public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                SubscriptionUtils.onNext(subscriber, new Wrapper(dataSnapshot, s, Wrapper.Type.ON_CHILD_MOVED));
-              }
-
-              @Override
-              public void onChildRemoved(DataSnapshot dataSnapshot) {
-                SubscriptionUtils.onNext(subscriber, new Wrapper(dataSnapshot, Wrapper.Type.ON_CHILD_REMOVED));
-              }
-            });
-      }
-    });
+    return Observable.just(null)
+        .flatMap(o -> {
+          if (mEndAt != Config.DEFAULT_END_AT) {
+            return Observable.create(SubscriptionUtils::onComplete);
+          } else {
+            DataSnapshot lastCachedSnapshot = cachedSnapshots.size() > 0 ? cachedSnapshots.get(cachedSnapshots.size() - 1) : null;
+            DataSnapshot lastNewSnapshot = newSnapshots.size() > 0 ? newSnapshots.get(newSnapshots.size() - 1) : null;
+            double startAt = lastNewSnapshot != null ? FirechatUtils.getPriority(lastNewSnapshot) + 1 :
+                (lastCachedSnapshot != null ? FirechatUtils.getPriority(lastCachedSnapshot) + 1 : Config.DEFAULT_START_AT);
+            return FirechatUtils
+                .observeChildEvent(FirechatUtils.getQuery(
+                    mRef.orderByPriority(),
+                    startAt,
+                    Config.DEFAULT_END_AT,
+                    startAt != Config.DEFAULT_START_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast));
+          }
+        });
   }
 
   private Observable<List<DataSnapshot>> syncSnapshotAfterHavingCache(List<DataSnapshot> cachedSnapshots) {
-    return Observable.just(true).flatMap(b -> {
+    return Observable.just(null).flatMap(o -> {
       DataSnapshot lastCachedSnapshot = cachedSnapshots.size() > 0 ? cachedSnapshots.get(cachedSnapshots.size() - 1) : null;
       return FirechatUtils
-          .getSingleValueEvent(FirechatUtils.getQuery(
+          .observeSingleValueEvent(FirechatUtils.getQuery(
               mRef.orderByPriority(),
               lastCachedSnapshot != null ? FirechatUtils.getPriority(lastCachedSnapshot) + 1 : Config.DEFAULT_START_AT,
               mEndAt,
-              mEndAt != Config.DEFAULT_END_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast
-          ))
-          .map(dataSnapshot -> {
+              mEndAt != Config.DEFAULT_END_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast))
+          .map(wrapper -> {
             List<DataSnapshot> data = new ArrayList<>();
-            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            for (DataSnapshot snapshot : wrapper.dataSnapshot.getChildren()) {
               data.add(snapshot);
             }
             return data;

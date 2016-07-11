@@ -20,20 +20,28 @@ import com.google.firebase.database.DataSnapshot;
 
 public class Wrapper {
 
+  public static Wrapper create(DataSnapshot dataSnapshot, String previousKey, Type type) {
+    return new Wrapper(dataSnapshot, previousKey, type);
+  }
+
+  public static Wrapper create(DataSnapshot dataSnapshot, Type type) {
+    return create(dataSnapshot, null, type);
+  }
+
+  public static Wrapper create(DataSnapshot dataSnapshot) {
+    return create(dataSnapshot, Type.ON_CHILD_ADDED);
+  }
+
   public final DataSnapshot dataSnapshot;
 
   public final String previousKey;
 
   public final Type type;
 
-  public Wrapper(DataSnapshot dataSnapshot, String previousKey, Type type) {
+  protected Wrapper(DataSnapshot dataSnapshot, String previousKey, Type type) {
     this.dataSnapshot = dataSnapshot;
     this.previousKey = previousKey;
     this.type = type;
-  }
-
-  public Wrapper(DataSnapshot dataSnapshot, Type onChildRemoved) {
-    this(dataSnapshot, null, onChildRemoved);
   }
 
   public enum Type {

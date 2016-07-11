@@ -20,9 +20,13 @@ import com.google.firebase.database.DatabaseError;
 
 public class DatabaseErrorException extends RuntimeException {
 
+  public static DatabaseErrorException create(DatabaseError error) {
+    return new DatabaseErrorException(error);
+  }
+
   private final DatabaseError mError;
 
-  public DatabaseErrorException(DatabaseError error) {
+  protected DatabaseErrorException(DatabaseError error) {
     mError = error;
   }
 

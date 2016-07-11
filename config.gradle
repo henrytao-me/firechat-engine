@@ -67,10 +67,14 @@ ext {
   ]
 
   dependencies = [
-      "com.google.firebase:firebase-database": "com.google.firebase:firebase-database:9.2.0",
+      "com.github.Raizlabs.DBFlow:dbflow"          : "com.github.Raizlabs.DBFlow:dbflow:3.1.1",
+      "com.github.Raizlabs.DBFlow:dbflow-core"     : "com.github.Raizlabs.DBFlow:dbflow-core:3.1.1",
+      "com.github.Raizlabs.DBFlow:dbflow-processor": "com.github.Raizlabs.DBFlow:dbflow-processor:3.1.1",
 
-      "io.reactivex:rxandroid"               : "io.reactivex:rxandroid:1.2.1",
-      "io.reactivex:rxjava"                  : "io.reactivex:rxjava:1.1.6"
+      "com.google.firebase:firebase-database"      : "com.google.firebase:firebase-database:9.2.0",
+
+      "io.reactivex:rxandroid"                     : "io.reactivex:rxandroid:1.2.1",
+      "io.reactivex:rxjava"                        : "io.reactivex:rxjava:1.1.6"
   ]
 
   sampleDependencies = [

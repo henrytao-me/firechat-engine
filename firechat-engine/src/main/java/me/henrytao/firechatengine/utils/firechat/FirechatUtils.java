@@ -16,14 +16,19 @@
 
 package me.henrytao.firechatengine.utils.firechat;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import me.henrytao.firechatengine.internal.exception.DatabaseErrorException;
 import me.henrytao.firechatengine.internal.firecache.Config;
+import me.henrytao.firechatengine.internal.firecache.Wrapper;
+import me.henrytao.firechatengine.internal.firecache.Wrapper.Type;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
+import rx.observers.SerializedSubscriber;
 
 /**
  * Created by henrytao on 7/6/16.
@@ -51,48 +56,45 @@ public class FirechatUtils {
     return query;
   }
 
-  //public static Observable<DataSnapshot> observeChildEvent(Query query) {
-  //  return Observable.create(subscriber -> {
-  //    if (query == null) {
-  //      SubscriptionUtils.onComplete(subscriber);
-  //      return;
-  //    }
-  //    query.addChildEventListener(new ChildEventListener() {
-  //      @Override
-  //      public void onCancelled(DatabaseError databaseError) {
-  //        Log.d("custom onCancelled", String.format("%s", databaseError));
-  //        SubscriptionUtils.onError(subscriber, databaseError.toException());
-  //      }
-  //
-  //      @Override
-  //      public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-  //        Log.d("custom onChildAdded", String.format("%s - %s", dataSnapshot, s));
-  //        SubscriptionUtils.onNext(subscriber, dataSnapshot);
-  //      }
-  //
-  //      @Override
-  //      public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-  //        Log.d("custom onChildChanged", String.format("%s - %s", dataSnapshot, s));
-  //        SubscriptionUtils.onNext(subscriber, dataSnapshot);
-  //      }
-  //
-  //      @Override
-  //      public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-  //        Log.d("custom onChildMoved", String.format("%s - %s", dataSnapshot, s));
-  //        SubscriptionUtils.onNext(subscriber, dataSnapshot);
-  //      }
-  //
-  //      @Override
-  //      public void onChildRemoved(DataSnapshot dataSnapshot) {
-  //        // do nothing
-  //      }
-  //    });
-  //  });
-  //}
+  public static Observable<Wrapper> observeChildEvent(Query query) {
+    return Observable.create(s -> {
+      SerializedSubscriber<Wrapper> subscriber = new SerializedSubscriber<>(s);
+      if (query == null) {
+        SubscriptionUtils.onComplete(subscriber);
+        return;
+      }
+      query.addChildEventListener(new ChildEventListener() {
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+          SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
+        }
 
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, s, Type.ON_CHILD_ADDED));
+        }
 
-  public static Observable<DataSnapshot> getSingleValueEvent(Query query) {
-    return Observable.create(subscriber -> {
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, s, Type.ON_CHILD_CHANGED));
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, s, Type.ON_CHILD_MOVED));
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, Type.ON_CHILD_REMOVED));
+        }
+      });
+    });
+  }
+
+  public static Observable<Wrapper> observeSingleValueEvent(Query query) {
+    return Observable.create(s -> {
+      SerializedSubscriber<Wrapper> subscriber = new SerializedSubscriber<>(s);
       if (query == null) {
         SubscriptionUtils.onComplete(subscriber);
         return;
@@ -100,12 +102,33 @@ public class FirechatUtils {
       query.addListenerForSingleValueEvent(new ValueEventListener() {
         @Override
         public void onCancelled(DatabaseError databaseError) {
-          SubscriptionUtils.onError(subscriber, databaseError.toException());
+          SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
         }
 
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
-          SubscriptionUtils.onNextAndComplete(subscriber, dataSnapshot);
+          SubscriptionUtils.onNextAndComplete(subscriber, Wrapper.create(dataSnapshot));
+        }
+      });
+    });
+  }
+
+  public static Observable<Wrapper> observeValueEvent(Query query) {
+    return Observable.create(s -> {
+      SerializedSubscriber<Wrapper> subscriber = new SerializedSubscriber<>(s);
+      if (query == null) {
+        SubscriptionUtils.onComplete(subscriber);
+        return;
+      }
+      query.addValueEventListener(new ValueEventListener() {
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+          SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
+        }
+
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, Type.ON_CHILD_CHANGED));
         }
       });
     });
