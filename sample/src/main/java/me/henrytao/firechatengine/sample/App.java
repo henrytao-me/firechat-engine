@@ -16,14 +16,10 @@
 
 package me.henrytao.firechatengine.sample;
 
-import com.google.firebase.database.FirebaseDatabase;
-
 import android.annotation.SuppressLint;
 import android.app.Application;
-import android.content.Intent;
-import android.content.SharedPreferences;
 
-import me.henrytao.firechatengine.sample.service.FirechatBackgroundService;
+import me.henrytao.firechatengine.Firechat;
 
 /**
  * Created by henrytao on 6/17/16.
@@ -34,6 +30,7 @@ public class App extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
+    Firechat.init(this);
 
     //SharedPreferences sharedPreferences = getSharedPreferences("test", MODE_PRIVATE);
     //if (!sharedPreferences.getBoolean("init", false)) {

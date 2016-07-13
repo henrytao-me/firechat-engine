@@ -1,7 +1,15 @@
 package me.henrytao.firechatengine;
 
-import org.junit.Test;
+import com.google.firebase.database.DataSnapshot;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+
+import org.junit.Test;
+import org.objenesis.strategy.StdInstantiatorStrategy;
+
+import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +21,39 @@ import rx.Observable;
 public class ExampleUnitTest {
 
   private int i = 0;
+
+  public static class SampleModel {
+
+    private final String sample;
+
+    public SampleModel(String hello) {
+      this.sample = hello;
+    }
+
+    public String getHello() {
+      return sample;
+    }
+  }
+
+  @Test
+  public void testKyro() throws Exception {
+    SampleModel model = new SampleModel("moto");
+
+    Kryo kryo = new Kryo();
+    kryo.register(SampleModel.class);
+    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    Output output = new Output(stream);
+    kryo.writeObject(output, model);
+    output.close();
+
+    byte[] bytes = stream.toByteArray();
+
+    Input input = new Input(bytes);
+    SampleModel result = kryo.readObject(input, SampleModel.class);
+    input.close();
+  }
 
   @Test
   public void addition_isCorrect() throws Exception {

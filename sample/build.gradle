@@ -109,8 +109,10 @@ dependencies {
   }
 
   testCompile rootProject.ext.sampleDependencies["junit:junit"]
-  testCompile rootProject.ext.sampleDependencies["org.robolectric:robolectric"]
-  testCompile rootProject.ext.sampleDependencies["org.robolectric:shadows-support-v4"]
+//  testCompile(rootProject.ext.sampleDependencies["org.robolectric:robolectric"]) {
+//    transitive = true
+//  }
+//  testCompile rootProject.ext.sampleDependencies["org.robolectric:shadows-support-v4"]
 }
 
 apply plugin: "com.google.gms.google-services"

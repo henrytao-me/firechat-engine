@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import me.henrytao.firechatengine.internal.firecache.FirecacheReference;
+import me.henrytao.firechatengine.internal.firecache.db.DataSnapshotConverter;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.sample.util.Logger;
@@ -112,6 +113,9 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
               mLogger.d("custom onChildAdded: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+              DataSnapshotConverter converter = new DataSnapshotConverter();
+              byte[] bytes = converter.getDBValue(dataSnapshot);
+              DataSnapshot result = converter.getModelValue(bytes);
               addData(dataSnapshot.getValue(ChatMessage.class));
             }
 

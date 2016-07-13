@@ -16,8 +16,11 @@
 
 package me.henrytao.firechatengine;
 
+import android.content.Context;
+
 import me.henrytao.firechatengine.core.model.Message;
 import me.henrytao.firechatengine.core.model.Room;
+import me.henrytao.firechatengine.internal.firecache.Cache;
 import rx.Observable;
 
 /**
@@ -28,6 +31,10 @@ public class Firechat implements me.henrytao.firechatengine.core.Firechat {
   public static Firechat getInstance() {
     Firechat firechat = new Firechat();
     return firechat;
+  }
+
+  public static void init(Context context) {
+    Cache.init(context);
   }
 
   @Override
@@ -55,11 +62,11 @@ public class Firechat implements me.henrytao.firechatengine.core.Firechat {
     return null;
   }
 
-  public static class ChatRoom implements Room {
+  public static class ChatMessage implements Message {
 
   }
 
-  public static class ChatMessage implements Message {
+  public static class ChatRoom implements Room {
 
   }
 }

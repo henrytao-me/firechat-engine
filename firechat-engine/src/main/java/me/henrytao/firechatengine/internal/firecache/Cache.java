@@ -19,6 +19,11 @@ package me.henrytao.firechatengine.internal.firecache;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 
+import com.raizlabs.android.dbflow.config.FlowConfig;
+import com.raizlabs.android.dbflow.config.FlowManager;
+
+import android.content.Context;
+
 import java.util.List;
 
 import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
@@ -33,16 +38,28 @@ public class Cache {
   private static Cache sInstance;
 
   public static Cache getInstance() {
-    Cache cache = sInstance;
-    if (cache == null) {
+    if (sInstance == null) {
+      throw new IllegalStateException("Cache has not been initialized properly");
+    }
+    return sInstance;
+  }
+
+  public static void init(Context context) {
+    context = context.getApplicationContext();
+    if (sInstance == null) {
       synchronized (Cache.class) {
-        cache = sInstance;
-        if (cache == null) {
-          cache = sInstance = new Cache();
+        if (sInstance == null) {
+          sInstance = new Cache(context);
         }
       }
     }
-    return cache;
+  }
+
+  private final Context mContext;
+
+  public Cache(Context context) {
+    mContext = context.getApplicationContext();
+    FlowManager.init(new FlowConfig.Builder(mContext).build());
   }
 
   public Observable<DataSnapshot> get(DatabaseReference reference) {

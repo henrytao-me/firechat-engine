@@ -67,6 +67,8 @@ ext {
   ]
 
   dependencies = [
+      "com.esotericsoftware:kryo"                  : "com.esotericsoftware:kryo:4.0.0",
+
       "com.github.Raizlabs.DBFlow:dbflow"          : "com.github.Raizlabs.DBFlow:dbflow:3.1.1",
       "com.github.Raizlabs.DBFlow:dbflow-core"     : "com.github.Raizlabs.DBFlow:dbflow-core:3.1.1",
       "com.github.Raizlabs.DBFlow:dbflow-processor": "com.github.Raizlabs.DBFlow:dbflow-processor:3.1.1",
