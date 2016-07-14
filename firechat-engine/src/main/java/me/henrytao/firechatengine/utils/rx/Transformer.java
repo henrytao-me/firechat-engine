@@ -16,7 +16,7 @@
 
 package me.henrytao.firechatengine.utils.rx;
 
-import me.henrytao.firechatengine.internal.firecache.JobExecutor;
+import me.henrytao.firechatengine.JobExecutor;
 import rx.Observable;
 import rx.Scheduler;
 import rx.android.schedulers.AndroidSchedulers;

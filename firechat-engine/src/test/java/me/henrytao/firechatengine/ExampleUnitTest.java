@@ -1,7 +1,5 @@
 package me.henrytao.firechatengine;
 
-import com.google.firebase.database.DataSnapshot;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -21,39 +19,6 @@ import rx.Observable;
 public class ExampleUnitTest {
 
   private int i = 0;
-
-  public static class SampleModel {
-
-    private final String sample;
-
-    public SampleModel(String hello) {
-      this.sample = hello;
-    }
-
-    public String getHello() {
-      return sample;
-    }
-  }
-
-  @Test
-  public void testKyro() throws Exception {
-    SampleModel model = new SampleModel("moto");
-
-    Kryo kryo = new Kryo();
-    kryo.register(SampleModel.class);
-    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
-
-    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-    Output output = new Output(stream);
-    kryo.writeObject(output, model);
-    output.close();
-
-    byte[] bytes = stream.toByteArray();
-
-    Input input = new Input(bytes);
-    SampleModel result = kryo.readObject(input, SampleModel.class);
-    input.close();
-  }
 
   @Test
   public void addition_isCorrect() throws Exception {
@@ -89,6 +54,25 @@ public class ExampleUnitTest {
     Thread.sleep(8000);
   }
 
+  @Test
+  public void testKyro() throws Exception {
+    SuperSampleModel superSampleModel = new SuperSampleModel("moto", "abc");
+
+    Kryo kryo = new Kryo();
+    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    Output output = new Output(stream);
+    kryo.writeObject(output, superSampleModel);
+    output.close();
+
+    byte[] bytes = stream.toByteArray();
+
+    Input input = new Input(bytes);
+    SampleModel result = kryo.readObject(input, SuperSampleModel.class);
+    input.close();
+  }
+
   private Observable<Boolean> getBoolean() {
     return Observable.create(subscriber -> {
       if (i % 2 == 0) {
@@ -114,5 +98,44 @@ public class ExampleUnitTest {
         subscriber.onNext(2);
       });
     });
+  }
+
+  public static class SampleModel {
+
+    private final String sample;
+
+    private final SubClass subClass;
+
+    public SampleModel(String hello) {
+      this.sample = hello;
+      this.subClass = new SubClass("okie salem");
+    }
+
+    public String getHello() {
+      return sample;
+    }
+
+    public SubClass getSubClass() {
+      return subClass;
+    }
+  }
+
+  public static class SubClass {
+
+    private final String test;
+
+    public SubClass(String test) {
+      this.test = test;
+    }
+  }
+
+  public static class SuperSampleModel extends SampleModel {
+
+    private final String abc;
+
+    public SuperSampleModel(String hello, String abc) {
+      super(hello);
+      this.abc = abc;
+    }
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.firecache;
+package me.henrytao.firechatengine;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;

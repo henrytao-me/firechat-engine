@@ -45,9 +45,10 @@ public class Wrapper {
   }
 
   public enum Type {
+    FROM_CACHE,
     ON_CHILD_ADDED,
     ON_CHILD_CHANGED,
     ON_CHILD_MOVED,
-    type, ON_CHILD_REMOVED
+    ON_CHILD_REMOVED
   }
 }

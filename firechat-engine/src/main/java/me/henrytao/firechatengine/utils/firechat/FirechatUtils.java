@@ -29,6 +29,7 @@ import me.henrytao.firechatengine.internal.firecache.Wrapper.Type;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
 import rx.observers.SerializedSubscriber;
+import rx.subscriptions.Subscriptions;
 
 /**
  * Created by henrytao on 7/6/16.
@@ -63,7 +64,7 @@ public class FirechatUtils {
         SubscriptionUtils.onComplete(subscriber);
         return;
       }
-      query.addChildEventListener(new ChildEventListener() {
+      ChildEventListener listener = new ChildEventListener() {
         @Override
         public void onCancelled(DatabaseError databaseError) {
           SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
@@ -88,7 +89,9 @@ public class FirechatUtils {
         public void onChildRemoved(DataSnapshot dataSnapshot) {
           SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, Type.ON_CHILD_REMOVED));
         }
-      });
+      };
+      query.addChildEventListener(listener);
+      subscriber.add(Subscriptions.create(() -> query.removeEventListener(listener)));
     });
   }
 
@@ -99,7 +102,7 @@ public class FirechatUtils {
         SubscriptionUtils.onComplete(subscriber);
         return;
       }
-      query.addListenerForSingleValueEvent(new ValueEventListener() {
+      ValueEventListener listener = new ValueEventListener() {
         @Override
         public void onCancelled(DatabaseError databaseError) {
           SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
@@ -109,7 +112,9 @@ public class FirechatUtils {
         public void onDataChange(DataSnapshot dataSnapshot) {
           SubscriptionUtils.onNextAndComplete(subscriber, Wrapper.create(dataSnapshot));
         }
-      });
+      };
+      query.addListenerForSingleValueEvent(listener);
+      subscriber.add(Subscriptions.create(() -> query.removeEventListener(listener)));
     });
   }
 
@@ -120,7 +125,7 @@ public class FirechatUtils {
         SubscriptionUtils.onComplete(subscriber);
         return;
       }
-      query.addValueEventListener(new ValueEventListener() {
+      ValueEventListener listener = new ValueEventListener() {
         @Override
         public void onCancelled(DatabaseError databaseError) {
           SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
@@ -130,7 +135,9 @@ public class FirechatUtils {
         public void onDataChange(DataSnapshot dataSnapshot) {
           SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, Type.ON_CHILD_CHANGED));
         }
-      });
+      };
+      query.addValueEventListener(listener);
+      subscriber.add(Subscriptions.create(() -> query.removeEventListener(listener)));
     });
   }
 }

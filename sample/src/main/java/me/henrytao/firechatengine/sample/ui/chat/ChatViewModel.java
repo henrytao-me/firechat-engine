@@ -16,7 +16,6 @@
 
 package me.henrytao.firechatengine.sample.ui.chat;
 
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import me.henrytao.firechatengine.internal.firecache.FirecacheReference;
-import me.henrytao.firechatengine.internal.firecache.db.DataSnapshotConverter;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.sample.util.Logger;
@@ -102,41 +100,47 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
       //  }
       //});
 
-      FirecacheReference ref = new FirecacheReference.Builder(mMessagesRef)
-          .limitToLast(5)
-          .addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-              mLogger.d("custom onCancelled: %s", databaseError);
-            }
+      FirecacheReference<ChatMessage> ref = FirecacheReference.create(ChatMessage.class, mMessagesRef)
+          .limitToLast(5);
+      ref.addListenerForSingleValueEvent().subscribe(chatMessage -> {
 
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-              mLogger.d("custom onChildAdded: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
-              DataSnapshotConverter converter = new DataSnapshotConverter();
-              byte[] bytes = converter.getDBValue(dataSnapshot);
-              DataSnapshot result = converter.getModelValue(bytes);
-              addData(dataSnapshot.getValue(ChatMessage.class));
-            }
+      });
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-              mLogger.d("custom onChildChanged: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
-              addData(dataSnapshot.getValue(ChatMessage.class));
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-              mLogger.d("custom onChildMoved: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
-              addData(dataSnapshot.getValue(ChatMessage.class));
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-              mLogger.d("custom onChildRemoved: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
-            }
-          })
-          .build();
+      //FirecacheReference ref = new FirecacheReference.Builder(mMessagesRef)
+      //    .limitToLast(5)
+      //    .addChildEventListener(new ChildEventListener() {
+      //      @Override
+      //      public void onCancelled(DatabaseError databaseError) {
+      //        mLogger.d("custom onCancelled: %s", databaseError);
+      //      }
+      //
+      //      @Override
+      //      public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+      //        mLogger.d("custom onChildAdded: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+      //        DataSnapshotConverter converter = new DataSnapshotConverter();
+      //        byte[] bytes = converter.getDBValue(dataSnapshot);
+      //        DataSnapshot result = converter.getModelValue(bytes);
+      //        addData(dataSnapshot.getValue(ChatMessage.class));
+      //      }
+      //
+      //      @Override
+      //      public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+      //        mLogger.d("custom onChildChanged: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+      //        addData(dataSnapshot.getValue(ChatMessage.class));
+      //      }
+      //
+      //      @Override
+      //      public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+      //        mLogger.d("custom onChildMoved: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+      //        addData(dataSnapshot.getValue(ChatMessage.class));
+      //      }
+      //
+      //      @Override
+      //      public void onChildRemoved(DataSnapshot dataSnapshot) {
+      //        mLogger.d("custom onChildRemoved: %s | %d", dataSnapshot, dataSnapshot.getChildrenCount());
+      //      }
+      //    })
+      //    .build();
 
       //mMessagesRef.orderByPriority().startAt(1.468063342215E12, "-KMEO5Ql63YzYJePsoVZ").limitToFirst(1).addChildEventListener(new ChildEventListener() {
       //  @Override

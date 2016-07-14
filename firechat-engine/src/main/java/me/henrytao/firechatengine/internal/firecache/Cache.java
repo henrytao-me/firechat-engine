@@ -62,27 +62,75 @@ public class Cache {
     FlowManager.init(new FlowConfig.Builder(mContext).build());
   }
 
-  public Observable<DataSnapshot> get(DatabaseReference reference) {
+  public <T> Observable<CacheSnapshot<T>> get(Class<T> tClass, DatabaseReference ref) {
     return Observable.create(subscriber -> {
+      // TODO: check BaseModel
       SubscriptionUtils.onError(subscriber, new NoDataFoundException());
     });
   }
 
-  public Observable<List<DataSnapshot>> get(DatabaseReference reference, double startAt, double endAt, int limitToLast) {
+  public <T> Observable<List<CacheSnapshot<T>>> get(Class<T> tClass, DatabaseReference ref, double startAt, double endAt, int limitToLast) {
     return Observable.create(subscriber -> {
+      // TODO: check BaseModel
       SubscriptionUtils.onError(subscriber, new NoDataFoundException());
     });
   }
 
-  public Observable<DataSnapshot> set(DatabaseReference reference, DataSnapshot dataSnapshot) {
+  public <T> Observable<Void> set(Class<T> tClass, DatabaseReference ref, DataSnapshot dataSnapshot) {
     return Observable.create(subscriber -> {
-      SubscriptionUtils.onNextAndComplete(subscriber, dataSnapshot);
+      SubscriptionUtils.onNextAndComplete(subscriber);
     });
   }
 
-  public Observable<DataSnapshot> set(DatabaseReference reference, String key, DataSnapshot dataSnapshot) {
+  public <T> Observable<Void> set(Class<T> tClass, DatabaseReference ref, String key, DataSnapshot dataSnapshot) {
     return Observable.create(subscriber -> {
-      SubscriptionUtils.onNextAndComplete(subscriber, dataSnapshot);
+      SubscriptionUtils.onNextAndComplete(subscriber);
     });
   }
+
+  public static class CacheSnapshot<T> {
+
+    public final T data;
+
+    public final double priority;
+
+    public CacheSnapshot(T data, double priority) {
+      this.priority = priority;
+      this.data = data;
+    }
+  }
+
+  //public <T> Observable<T> get(Class<T> tClass, DatabaseReference ref) {
+  //  return Observable.create(subscriber -> {
+  //    // TODO: check BaseModel
+  //    SubscriptionUtils.onError(subscriber, new NoDataFoundException());
+  //  });
+  //}
+  //
+  //public <T> Observable<List<T>> get(Class<T> tClass, DatabaseReference ref, double startAt, double endAt, int limitToLast) {
+  //  return Observable.create(subscriber -> {
+  //    // TODO: check BaseModel
+  //    SubscriptionUtils.onError(subscriber, new NoDataFoundException());
+  //  });
+  //}
+  //
+  //public <T> Observable<T> set(Class<T> tClass, DatabaseReference ref, DataSnapshot dataSnapshot) {
+  //  return Observable.create(subscriber -> {
+  //    T object = dataSnapshot.getValue(tClass);
+  //    if (object instanceof BaseModel) {
+  //      ((BaseModel) object).setPriority(FirechatUtils.getPriority(dataSnapshot));
+  //    }
+  //    SubscriptionUtils.onNextAndComplete(subscriber, object);
+  //  });
+  //}
+  //
+  //public <T> Observable<T> set(Class<T> tClass, DatabaseReference ref, String key, DataSnapshot dataSnapshot) {
+  //  return Observable.create(subscriber -> {
+  //    T object = dataSnapshot.getValue(tClass);
+  //    if (object instanceof BaseModel) {
+  //      ((BaseModel) object).setPriority(FirechatUtils.getPriority(dataSnapshot));
+  //    }
+  //    SubscriptionUtils.onNextAndComplete(subscriber, object);
+  //  });
+  //}
 }
