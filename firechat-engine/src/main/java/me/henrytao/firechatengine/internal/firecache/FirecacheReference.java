@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.henrytao.firechatengine.utils.firechat.FirechatUtils;
+import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
 import rx.functions.Func1;
@@ -114,36 +115,36 @@ public class FirecacheReference<T> {
   //      }));
   //}
 
-  public Observable<T> addListenerForSingleValueEvent() {
-    return FirechatUtils
-        .observeSingleValueEvent(getQuery())
-        .filter(mFilter::call)
-        .map(wrapper -> {
-          List<T> data = new ArrayList<>();
-          if (wrapper.dataSnapshot.getChildrenCount() > 0) {
-            for (DataSnapshot snapshot : wrapper.dataSnapshot.getChildren()) {
-              data.add(snapshot.getValue(mClass));
-            }
-          } else {
-            data.add(wrapper.dataSnapshot.getValue(mClass));
-          }
-          return data;
-        })
-        .flatMapIterable(ts -> ts);
-  }
-
-  public Observable<T> addValueEventListener() {
-    return mCache.get(mClass, mRef)
-        .map(this::getValue)
-        .onErrorReturn(throwable -> null)
-        .mergeWith(FirechatUtils
-            .observeValueEvent(getQuery())
-            .filter(mFilter::call)
-            .flatMap(wrapper -> mCache.set(mClass, mRef, wrapper.dataSnapshot)
-                .map(aVoid -> getValue(wrapper)))
-        )
-        .distinctUntilChanged();
-  }
+  //public Observable<T> addListenerForSingleValueEvent() {
+  //  return FirechatUtils
+  //      .observeSingleValueEvent(mClass, getQuery())
+  //      .filter(mFilter::call)
+  //      .map(wrapper -> {
+  //        List<T> data = new ArrayList<>();
+  //        if (wrapper.dataSnapshot.getChildrenCount() > 0) {
+  //          for (DataSnapshot snapshot : wrapper.dataSnapshot.getChildren()) {
+  //            data.add(snapshot.getValue(mClass));
+  //          }
+  //        } else {
+  //          data.add(wrapper.dataSnapshot.getValue(mClass));
+  //        }
+  //        return data;
+  //      })
+  //      .flatMapIterable(ts -> ts);
+  //}
+  //
+  //public Observable<T> addValueEventListener() {
+  //  return mCache.get(mClass, mRef)
+  //      .map(this::getValue)
+  //      .onErrorReturn(throwable -> null)
+  //      .mergeWith(FirechatUtils
+  //          .observeValueEvent(getQuery())
+  //          .filter(mFilter::call)
+  //          .flatMap(wrapper -> mCache.set(mClass, mRef, wrapper.dataSnapshot)
+  //              .map(aVoid -> getValue(wrapper)))
+  //      )
+  //      .distinctUntilChanged();
+  //}
 
   public FirecacheReference<T> endAt(double endAt) {
     mEndAt = endAt;
@@ -165,26 +166,26 @@ public class FirecacheReference<T> {
     return this;
   }
 
-  private Observable<Wrapper> createListenerIfNecessary(List<Cache.CacheSnapshot<T>> cacheSnapshots, List<DataSnapshot> dataSnapshots) {
-    return Observable.just(null)
-        .flatMap(o -> {
-          if (mEndAt != Config.DEFAULT_END_AT) {
-            return Observable.create(SubscriptionUtils::onComplete);
-          } else {
-            Cache.CacheSnapshot<T> lastCacheSnapshot = cacheSnapshots.size() > 0 ? cacheSnapshots.get(cacheSnapshots.size() - 1) : null;
-            DataSnapshot lastDataSnapshot = dataSnapshots.size() > 0 ? dataSnapshots.get(dataSnapshots.size() - 1) : null;
-            double startAt = lastDataSnapshot != null ?
-                FirechatUtils.getPriority(lastDataSnapshot) + 1 :
-                (lastCacheSnapshot != null ? lastCacheSnapshot.priority + 1 : Config.DEFAULT_START_AT);
-            return FirechatUtils
-                .observeChildEvent(FirechatUtils.getQuery(
-                    mRef.orderByPriority(),
-                    startAt,
-                    Config.DEFAULT_END_AT,
-                    startAt != Config.DEFAULT_START_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast));
-          }
-        });
-  }
+  //private Observable<Wrapper> createListenerIfNecessary(List<Cache.CacheSnapshot<T>> cacheSnapshots, List<DataSnapshot> dataSnapshots) {
+  //  return Observable.just(null)
+  //      .flatMap(o -> {
+  //        if (mEndAt != Config.DEFAULT_END_AT) {
+  //          return Observable.create(SubscriptionUtils::onComplete);
+  //        } else {
+  //          Cache.CacheSnapshot<T> lastCacheSnapshot = cacheSnapshots.size() > 0 ? cacheSnapshots.get(cacheSnapshots.size() - 1) : null;
+  //          DataSnapshot lastDataSnapshot = dataSnapshots.size() > 0 ? dataSnapshots.get(dataSnapshots.size() - 1) : null;
+  //          double startAt = lastDataSnapshot != null ?
+  //              FirechatUtils.getPriority(lastDataSnapshot) + 1 :
+  //              (lastCacheSnapshot != null ? lastCacheSnapshot.priority + 1 : Config.DEFAULT_START_AT);
+  //          return FirechatUtils
+  //              .observeChildEvent(FirechatUtils.getQuery(
+  //                  mRef.orderByPriority(),
+  //                  startAt,
+  //                  Config.DEFAULT_END_AT,
+  //                  startAt != Config.DEFAULT_START_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast));
+  //        }
+  //      });
+  //}
 
   //protected void loadChildEvent() {
   //  if (mChildEventListener == null) {
@@ -264,9 +265,9 @@ public class FirecacheReference<T> {
     return data;
   }
 
-  private T getValue(Wrapper wrapper) {
-    return getValue(wrapper.dataSnapshot);
-  }
+  //private T getValue(Wrapper wrapper) {
+  //  return getValue(wrapper.dataSnapshot);
+  //}
 
   private List<T> getValue(List<Cache.CacheSnapshot<T>> cacheSnapshots) {
     List<T> data = new ArrayList<>();
@@ -276,22 +277,22 @@ public class FirecacheReference<T> {
     return data;
   }
 
-  private Observable<List<DataSnapshot>> syncSnapshotAfterHavingCache(List<Cache.CacheSnapshot<T>> cacheSnapshots) {
-    return Observable.just(null).flatMap(o -> {
-      Cache.CacheSnapshot<T> lastCacheSnapshot = cacheSnapshots.size() > 0 ? cacheSnapshots.get(cacheSnapshots.size() - 1) : null;
-      return FirechatUtils
-          .observeSingleValueEvent(FirechatUtils.getQuery(
-              mRef.orderByPriority(),
-              lastCacheSnapshot != null ? lastCacheSnapshot.priority + 1 : Config.DEFAULT_START_AT,
-              mEndAt,
-              mEndAt != Config.DEFAULT_END_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast))
-          .map(wrapper -> {
-            List<DataSnapshot> data = new ArrayList<>();
-            for (DataSnapshot snapshot : wrapper.dataSnapshot.getChildren()) {
-              data.add(snapshot);
-            }
-            return data;
-          });
-    });
-  }
+  //private Observable<List<DataSnapshot>> syncSnapshotAfterHavingCache(List<Cache.CacheSnapshot<T>> cacheSnapshots) {
+  //  return Observable.just(null).flatMap(o -> {
+  //    Cache.CacheSnapshot<T> lastCacheSnapshot = cacheSnapshots.size() > 0 ? cacheSnapshots.get(cacheSnapshots.size() - 1) : null;
+  //    return FirechatUtils
+  //        .observeSingleValueEvent(FirechatUtils.getQuery(
+  //            mRef.orderByPriority(),
+  //            lastCacheSnapshot != null ? lastCacheSnapshot.priority + 1 : Config.DEFAULT_START_AT,
+  //            mEndAt,
+  //            mEndAt != Config.DEFAULT_END_AT ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast))
+  //        .map(wrapper -> {
+  //          List<DataSnapshot> data = new ArrayList<>();
+  //          for (DataSnapshot snapshot : wrapper.dataSnapshot.getChildren()) {
+  //            data.add(snapshot);
+  //          }
+  //          return data;
+  //        });
+  //  });
+  //}
 }

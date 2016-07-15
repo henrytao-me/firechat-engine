@@ -24,8 +24,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import me.henrytao.firechatengine.internal.exception.DatabaseErrorException;
 import me.henrytao.firechatengine.internal.firecache.Config;
-import me.henrytao.firechatengine.internal.firecache.Wrapper;
-import me.henrytao.firechatengine.internal.firecache.Wrapper.Type;
+import me.henrytao.firechatengine.utils.firechat.Wrapper.Type;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
 import rx.observers.SerializedSubscriber;
@@ -57,9 +56,9 @@ public class FirechatUtils {
     return query;
   }
 
-  public static Observable<Wrapper> observeChildEvent(Query query) {
+  public static <T> Observable<Wrapper<T>> observeChildEvent(Class<T> tClass, Query query) {
     return Observable.create(s -> {
-      SerializedSubscriber<Wrapper> subscriber = new SerializedSubscriber<>(s);
+      SerializedSubscriber<Wrapper<T>> subscriber = new SerializedSubscriber<>(s);
       if (query == null) {
         SubscriptionUtils.onComplete(subscriber);
         return;
@@ -72,22 +71,22 @@ public class FirechatUtils {
 
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, s, Type.ON_CHILD_ADDED));
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, dataSnapshot, s, Type.ON_CHILD_ADDED));
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, s, Type.ON_CHILD_CHANGED));
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, dataSnapshot, s, Type.ON_CHILD_CHANGED));
         }
 
         @Override
         public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, s, Type.ON_CHILD_MOVED));
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, dataSnapshot, s, Type.ON_CHILD_MOVED));
         }
 
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
-          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, Type.ON_CHILD_REMOVED));
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, dataSnapshot, Type.ON_CHILD_REMOVED));
         }
       };
       query.addChildEventListener(listener);
@@ -95,9 +94,9 @@ public class FirechatUtils {
     });
   }
 
-  public static Observable<Wrapper> observeSingleValueEvent(Query query) {
+  public static <T> Observable<Wrapper<T>> observeSingleValueEvent(Class<T> tClass, Query query) {
     return Observable.create(s -> {
-      SerializedSubscriber<Wrapper> subscriber = new SerializedSubscriber<>(s);
+      SerializedSubscriber<Wrapper<T>> subscriber = new SerializedSubscriber<>(s);
       if (query == null) {
         SubscriptionUtils.onComplete(subscriber);
         return;
@@ -110,7 +109,7 @@ public class FirechatUtils {
 
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
-          SubscriptionUtils.onNextAndComplete(subscriber, Wrapper.create(dataSnapshot));
+          SubscriptionUtils.onNextAndComplete(subscriber, Wrapper.create(tClass, dataSnapshot));
         }
       };
       query.addListenerForSingleValueEvent(listener);
@@ -118,9 +117,9 @@ public class FirechatUtils {
     });
   }
 
-  public static Observable<Wrapper> observeValueEvent(Query query) {
+  public static <T> Observable<Wrapper<T>> observeValueEvent(Class<T> tClass, Query query) {
     return Observable.create(s -> {
-      SerializedSubscriber<Wrapper> subscriber = new SerializedSubscriber<>(s);
+      SerializedSubscriber<Wrapper<T>> subscriber = new SerializedSubscriber<>(s);
       if (query == null) {
         SubscriptionUtils.onComplete(subscriber);
         return;
@@ -133,7 +132,7 @@ public class FirechatUtils {
 
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
-          SubscriptionUtils.onNext(subscriber, Wrapper.create(dataSnapshot, Type.ON_CHILD_CHANGED));
+          SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, dataSnapshot, Type.ON_CHILD_CHANGED));
         }
       };
       query.addValueEventListener(listener);

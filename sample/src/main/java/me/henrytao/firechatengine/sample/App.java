@@ -16,29 +16,18 @@
 
 package me.henrytao.firechatengine.sample;
 
-import android.annotation.SuppressLint;
-import android.app.Application;
+import com.google.firebase.database.FirebaseDatabase;
 
-import me.henrytao.firechatengine.Firechat;
+import android.app.Application;
 
 /**
  * Created by henrytao on 6/17/16.
  */
 public class App extends Application {
 
-  @SuppressLint("CommitPrefEdits")
   @Override
   public void onCreate() {
     super.onCreate();
-    Firechat.init(this);
-
-    //SharedPreferences sharedPreferences = getSharedPreferences("test", MODE_PRIVATE);
-    //if (!sharedPreferences.getBoolean("init", false)) {
-    //
-    //  sharedPreferences.edit().putBoolean("init", true).commit();
-    //}
-
-    //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-    //startService(new Intent(this, FirechatBackgroundService.class));
+    FirebaseDatabase.getInstance().setPersistenceEnabled(true);
   }
 }
