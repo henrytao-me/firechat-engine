@@ -16,11 +16,10 @@
 
 package me.henrytao.firechatengine.internal.firecache.db;
 
-import com.google.firebase.database.DataSnapshot;
-
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.data.Blob;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 /**
@@ -30,13 +29,16 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 public class Cache extends BaseModel {
 
   @Column
-  DataSnapshot dataSnapshot;
+  Blob data;
 
   @PrimaryKey(autoincrement = true)
   long id;
 
   @Column
   String key;
+
+  @Column
+  double priority;
 
   @Column
   String ref;

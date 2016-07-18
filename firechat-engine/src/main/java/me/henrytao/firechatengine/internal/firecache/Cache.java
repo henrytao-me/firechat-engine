@@ -16,9 +16,6 @@
 
 package me.henrytao.firechatengine.internal.firecache;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
 
@@ -27,6 +24,7 @@ import android.content.Context;
 import java.util.List;
 
 import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
+import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
 
@@ -62,75 +60,25 @@ public class Cache {
     FlowManager.init(new FlowConfig.Builder(mContext).build());
   }
 
-  public <T> Observable<CacheSnapshot<T>> get(Class<T> tClass, DatabaseReference ref) {
+  public <T> Observable<Wrapper<T>> get(Class<T> tClass, String ref) {
     return Observable.create(subscriber -> {
-      // TODO: check BaseModel
       SubscriptionUtils.onError(subscriber, new NoDataFoundException());
     });
   }
 
-  public <T> Observable<List<CacheSnapshot<T>>> get(Class<T> tClass, DatabaseReference ref, double startAt, double endAt, int limitToLast) {
+  public <T> Observable<List<Wrapper<T>>> get(Class<T> tClass, String ref, double startAt, double endAt, int limitToLast) {
     return Observable.create(subscriber -> {
-      // TODO: check BaseModel
       SubscriptionUtils.onError(subscriber, new NoDataFoundException());
     });
   }
 
-  public <T> Observable<Void> set(Class<T> tClass, DatabaseReference ref, DataSnapshot dataSnapshot) {
+  public <T> Observable<Void> set(String ref, String key, Wrapper<T> wrapper) {
     return Observable.create(subscriber -> {
       SubscriptionUtils.onNextAndComplete(subscriber);
     });
   }
 
-  public <T> Observable<Void> set(Class<T> tClass, DatabaseReference ref, String key, DataSnapshot dataSnapshot) {
-    return Observable.create(subscriber -> {
-      SubscriptionUtils.onNextAndComplete(subscriber);
-    });
+  public <T> Observable<Void> set(String ref, Wrapper<T> wrapper) {
+    return set(ref, null, wrapper);
   }
-
-  public static class CacheSnapshot<T> {
-
-    public final T data;
-
-    public final double priority;
-
-    public CacheSnapshot(T data, double priority) {
-      this.priority = priority;
-      this.data = data;
-    }
-  }
-
-  //public <T> Observable<T> get(Class<T> tClass, DatabaseReference ref) {
-  //  return Observable.create(subscriber -> {
-  //    // TODO: check BaseModel
-  //    SubscriptionUtils.onError(subscriber, new NoDataFoundException());
-  //  });
-  //}
-  //
-  //public <T> Observable<List<T>> get(Class<T> tClass, DatabaseReference ref, double startAt, double endAt, int limitToLast) {
-  //  return Observable.create(subscriber -> {
-  //    // TODO: check BaseModel
-  //    SubscriptionUtils.onError(subscriber, new NoDataFoundException());
-  //  });
-  //}
-  //
-  //public <T> Observable<T> set(Class<T> tClass, DatabaseReference ref, DataSnapshot dataSnapshot) {
-  //  return Observable.create(subscriber -> {
-  //    T object = dataSnapshot.getValue(tClass);
-  //    if (object instanceof BaseModel) {
-  //      ((BaseModel) object).setPriority(FirechatUtils.getPriority(dataSnapshot));
-  //    }
-  //    SubscriptionUtils.onNextAndComplete(subscriber, object);
-  //  });
-  //}
-  //
-  //public <T> Observable<T> set(Class<T> tClass, DatabaseReference ref, String key, DataSnapshot dataSnapshot) {
-  //  return Observable.create(subscriber -> {
-  //    T object = dataSnapshot.getValue(tClass);
-  //    if (object instanceof BaseModel) {
-  //      ((BaseModel) object).setPriority(FirechatUtils.getPriority(dataSnapshot));
-  //    }
-  //    SubscriptionUtils.onNextAndComplete(subscriber, object);
-  //  });
-  //}
 }

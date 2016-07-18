@@ -1,5 +1,10 @@
 package me.henrytao.firechatengine;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -52,6 +57,22 @@ public class ExampleUnitTest {
           System.out.println(String.format(Locale.US, "custom | %b", aBoolean2));
         }, Throwable::printStackTrace);
     Thread.sleep(8000);
+  }
+
+  @Test
+  public void testFirebase() throws Exception {
+    FirebaseDatabase.getInstance().getReference().child("demo").addListenerForSingleValueEvent(new ValueEventListener() {
+      @Override
+      public void onDataChange(DataSnapshot dataSnapshot) {
+        System.out.println(String.format(Locale.US, "onDataChange | %s", dataSnapshot.toString()));
+      }
+
+      @Override
+      public void onCancelled(DatabaseError databaseError) {
+        System.out.println(String.format(Locale.US, "onCancelled | %s", databaseError.toString()));
+      }
+    });
+    Thread.sleep(5000);
   }
 
   @Test

@@ -32,6 +32,8 @@ public class App extends Application {
     super.onCreate();
     Firechat.init(this);
 
+
+
     //SharedPreferences sharedPreferences = getSharedPreferences("test", MODE_PRIVATE);
     //if (!sharedPreferences.getBoolean("init", false)) {
     //

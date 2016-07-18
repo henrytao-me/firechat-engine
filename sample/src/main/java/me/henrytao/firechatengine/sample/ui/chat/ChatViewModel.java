@@ -34,6 +34,7 @@ import me.henrytao.firechatengine.internal.firecache.FirecacheReference;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.sample.util.Logger;
+import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.mvvmlifecycle.rx.UnsubscribeLifeCycle;
 import rx.Observable;
 
@@ -101,9 +102,14 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
       //});
 
       FirecacheReference<ChatMessage> ref = FirecacheReference.create(ChatMessage.class, mMessagesRef)
+          .filter(wrapper -> {
+            mLogger.d("custom filter: %s | %s", wrapper.type, wrapper.data);
+            return wrapper.type == Wrapper.Type.ON_CHILD_ADDED;
+          })
           .limitToLast(5);
-      ref.addListenerForSingleValueEvent().subscribe(chatMessage -> {
-
+      ref.addChildEventListener().subscribe(chatMessage -> {
+        mLogger.d("custom onChildAdded: %s", chatMessage.getMessage());
+        addData(chatMessage);
       });
 
       //FirecacheReference ref = new FirecacheReference.Builder(mMessagesRef)
