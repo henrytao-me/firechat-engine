@@ -16,31 +16,46 @@
 
 package me.henrytao.firechatengine.sample;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
 
+import java.util.Date;
+
 import me.henrytao.firechatengine.Firechat;
+import me.henrytao.firechatengine.sample.util.Ln;
 
 /**
  * Created by henrytao on 6/17/16.
  */
 public class App extends Application {
 
-  @SuppressLint("CommitPrefEdits")
+  private static Magic sMagicInstance;
+
+  public static Magic getMagicInstance() {
+    if (sMagicInstance == null) {
+      synchronized (Magic.class) {
+        if (sMagicInstance == null) {
+          sMagicInstance = new Magic();
+        }
+      }
+    }
+    return sMagicInstance;
+  }
+
   @Override
   public void onCreate() {
     super.onCreate();
     Firechat.init(this);
 
+    MagicService.start(this);
+    Ln.d("%s | %s | %d", getClass().getSimpleName(), "onCreate", App.getMagicInstance().key);
+  }
 
+  public static class Magic {
 
-    //SharedPreferences sharedPreferences = getSharedPreferences("test", MODE_PRIVATE);
-    //if (!sharedPreferences.getBoolean("init", false)) {
-    //
-    //  sharedPreferences.edit().putBoolean("init", true).commit();
-    //}
+    public final long key;
 
-    //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-    //startService(new Intent(this, FirechatBackgroundService.class));
+    public Magic() {
+      key = new Date().getTime();
+    }
   }
 }
