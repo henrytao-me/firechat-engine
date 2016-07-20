@@ -102,6 +102,8 @@ dependencies {
     exclude group: "com.android.support"
   }
 
+  compile rootProject.ext.sampleDependencies["com.facebook.stetho:stetho"]
+
   compile rootProject.ext.sampleDependencies["org.projectlombok:lombok"]
 
   compile(project(":firechat-engine")) {

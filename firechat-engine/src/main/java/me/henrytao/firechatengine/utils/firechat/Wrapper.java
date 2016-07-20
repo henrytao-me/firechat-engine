@@ -22,8 +22,8 @@ import me.henrytao.firechatengine.internal.firecache.BaseModel;
 
 public class Wrapper<T> {
 
-  public static <T> Wrapper<T> create(Class<T> tClass, DataSnapshot dataSnapshot, Type type) {
-    return new Wrapper<T>(tClass, dataSnapshot, type);
+  public static <T> Wrapper<T> clone(Wrapper<T> wrapper) {
+    return create(wrapper.mClass, wrapper.ref, wrapper.key, wrapper.data, wrapper.priority);
   }
 
   public static <T> Wrapper<T> create(Class<T> tClass, DataSnapshot dataSnapshot) {
@@ -34,17 +34,21 @@ public class Wrapper<T> {
     return new Wrapper<T>(tClass, ref, key, data, priority);
   }
 
+  public static <T> Wrapper<T> create(Class<T> tClass, DataSnapshot dataSnapshot, Type type) {
+    return new Wrapper<T>(tClass, dataSnapshot, type);
+  }
+
   public final T data;
 
   public final String key;
+
+  public final Class<T> mClass;
 
   public final Double priority;
 
   public final String ref;
 
   public final Type type;
-
-  private final Class<T> mClass;
 
   protected Wrapper(Class<T> tClass, String ref, String key, T data, Type type, double priority) {
     mClass = tClass;

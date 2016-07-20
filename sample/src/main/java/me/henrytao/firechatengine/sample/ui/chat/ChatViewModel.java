@@ -35,8 +35,10 @@ import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.sample.util.Logger;
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
+import me.henrytao.firechatengine.utils.rx.Transformer;
 import me.henrytao.mvvmlifecycle.rx.UnsubscribeLifeCycle;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 
 /**
  * Created by henrytao on 7/1/16.
@@ -57,22 +59,22 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
 
     mMessagesRef = FirebaseDatabase.getInstance().getReference().child("messages");
 
-    DatabaseReference offsetRef = FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset");
-    offsetRef.addValueEventListener(new ValueEventListener() {
-      @Override
-      public void onCancelled(DatabaseError error) {
-        System.err.println("Listener was cancelled");
-      }
+    //DatabaseReference offsetRef = FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset");
+    //offsetRef.addValueEventListener(new ValueEventListener() {
+    //  @Override
+    //  public void onCancelled(DatabaseError error) {
+    //    System.err.println("Listener was cancelled");
+    //  }
+    //
+    //  @Override
+    //  public void onDataChange(DataSnapshot snapshot) {
+    //    double offset = snapshot.getValue(Double.class);
+    //    double estimatedServerTimeMs = System.currentTimeMillis() + offset;
+    //    mLogger.d("custom lock time: %f - %f - %d", offset, estimatedServerTimeMs, System.currentTimeMillis());
+    //  }
+    //});
 
-      @Override
-      public void onDataChange(DataSnapshot snapshot) {
-        double offset = snapshot.getValue(Double.class);
-        double estimatedServerTimeMs = System.currentTimeMillis() + offset;
-        mLogger.d("custom lock time: %f - %f - %d", offset, estimatedServerTimeMs, System.currentTimeMillis());
-      }
-    });
-
-    manageSubscription(Observable.timer(100, TimeUnit.MILLISECONDS).subscribe(aLong -> {
+    manageSubscription(Observable.timer(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
 
       //FirechatReference<ChatMessage> ref = new FirechatReference.Builder<>(ChatMessage.class, "messages")
       //    .limitToLast(5)
@@ -103,11 +105,11 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
 
       FirecacheReference<ChatMessage> ref = FirecacheReference.create(ChatMessage.class, mMessagesRef)
           .filter(wrapper -> {
-            mLogger.d("custom filter: %s | %s", wrapper.type, wrapper.data);
-            return wrapper.type == Wrapper.Type.ON_CHILD_ADDED;
+            mLogger.d("custom filter: %s | %s | %s", wrapper.type, wrapper.key, wrapper.data);
+            return wrapper.type == Wrapper.Type.ON_CHILD_ADDED || wrapper.type == Wrapper.Type.FROM_CACHE;
           })
           .limitToLast(5);
-      ref.addChildEventListener().subscribe(chatMessage -> {
+      ref.addChildEventListener().compose(Transformer.applyNewThreadScheduler()).subscribe(chatMessage -> {
         mLogger.d("custom onChildAdded: %s", chatMessage.getMessage());
         addData(chatMessage);
       });

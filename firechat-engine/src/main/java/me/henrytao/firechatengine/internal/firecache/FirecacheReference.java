@@ -59,9 +59,11 @@ public class FirecacheReference<T> {
 
   public Observable<T> addChildEventListener() {
     return mCache.get(mClass, mRef.toString(), mStartAt, mEndAt, mLimitToLast)
+        .doOnError(Throwable::printStackTrace)
         .onErrorReturn(throwable -> new ArrayList<>())
         .flatMap(caches -> {
           Observable<Wrapper<T>> syncObservable = syncDataAfterHavingCache(caches)
+              .onErrorReturn(throwable -> new ArrayList<>())
               .flatMap(syncs -> Observable.just(syncs)
                   .flatMapIterable(wrappers -> wrappers)
                   .mergeWith(createListenerIfNecessary(caches, syncs)))
@@ -86,11 +88,7 @@ public class FirecacheReference<T> {
         .onErrorReturn(throwable -> null)
         .mergeWith(FirechatUtils
             .observeValueEvent(mClass, getQuery())
-            .flatMap(wrapper -> {
-              return mCache.set(mRef.toString(), wrapper).map(aVoid -> {
-                return wrapper;
-              });
-            })
+            .flatMap(wrapper -> mCache.set(mRef.toString(), wrapper).map(aVoid -> Wrapper.clone(wrapper)))
         )
         .filter(wrapper -> wrapper != null)
         .filter(mFilter::call)

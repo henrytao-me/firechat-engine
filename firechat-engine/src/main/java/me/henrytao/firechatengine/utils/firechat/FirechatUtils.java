@@ -23,6 +23,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import me.henrytao.firechatengine.internal.exception.DatabaseErrorException;
+import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
 import me.henrytao.firechatengine.internal.firecache.Config;
 import me.henrytao.firechatengine.utils.firechat.Wrapper.Type;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
@@ -109,13 +110,17 @@ public class FirechatUtils {
 
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
-          if (dataSnapshot.getChildrenCount() == 0) {
-            SubscriptionUtils.onNextAndComplete(subscriber, Wrapper.create(tClass, dataSnapshot));
+          if (dataSnapshot == null || !dataSnapshot.exists()) {
+            SubscriptionUtils.onError(subscriber, new NoDataFoundException());
           } else {
-            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-              SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, snapshot));
+            if (dataSnapshot.getChildrenCount() == 0) {
+              SubscriptionUtils.onNextAndComplete(subscriber, Wrapper.create(tClass, dataSnapshot));
+            } else {
+              for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, snapshot));
+              }
+              SubscriptionUtils.onComplete(subscriber);
             }
-            SubscriptionUtils.onComplete(subscriber);
           }
         }
       };

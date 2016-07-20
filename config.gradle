@@ -73,7 +73,7 @@ ext {
       "com.github.Raizlabs.DBFlow:dbflow-core"     : "com.github.Raizlabs.DBFlow:dbflow-core:3.1.1",
       "com.github.Raizlabs.DBFlow:dbflow-processor": "com.github.Raizlabs.DBFlow:dbflow-processor:3.1.1",
 
-      "com.google.firebase:firebase-database"      : "com.google.firebase:firebase-database:9.2.0",
+      "com.google.firebase:firebase-database"      : "com.google.firebase:firebase-database:9.2.1",
 
       "io.reactivex:rxandroid"                     : "io.reactivex:rxandroid:1.2.1",
       "io.reactivex:rxjava"                        : "io.reactivex:rxjava:1.1.6"
@@ -84,6 +84,8 @@ ext {
       "com.android.support:appcompat-v7"   : "com.android.support:appcompat-v7:23.3.0",
       "com.android.support:cardview-v7"    : "com.android.support:cardview-v7:23.3.0",
       "com.android.support:recyclerview-v7": "com.android.support:recyclerview-v7:23.3.0",
+
+      "com.facebook.stetho:stetho"         : "com.facebook.stetho:stetho:1.3.1",
 
       "me.henrytao:mdcore"                 : "me.henrytao:mdcore:3.0.2",
       "me.henrytao:mvvm-life-cycle"        : "me.henrytao:mvvm-life-cycle:2.3.0",

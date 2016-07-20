@@ -16,6 +16,8 @@
 
 package me.henrytao.firechatengine.sample;
 
+import com.facebook.stetho.Stetho;
+
 import android.annotation.SuppressLint;
 import android.app.Application;
 
@@ -30,9 +32,8 @@ public class App extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
+    Stetho.initializeWithDefaults(this);
     Firechat.init(this);
-
-
 
     //SharedPreferences sharedPreferences = getSharedPreferences("test", MODE_PRIVATE);
     //if (!sharedPreferences.getBoolean("init", false)) {
