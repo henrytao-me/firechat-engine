@@ -18,6 +18,9 @@ package me.henrytao.firechatengine.sample.ui.chat;
 
 import android.databinding.ObservableField;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 
@@ -33,6 +36,7 @@ public class ChatItemViewModel extends BaseViewModel {
   }
 
   public void bind(ChatMessage data) {
-    message.set(data.getMessage());
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    message.set(String.format(Locale.US, "%s - %s", data.getMessage(), dateFormat.format(data.getPriority())));
   }
 }

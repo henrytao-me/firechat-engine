@@ -58,7 +58,7 @@ public class FirecacheReference<T> {
   }
 
   public Observable<T> addChildEventListener() {
-    return mCache.get(mClass, mRef.toString(), mStartAt, mEndAt, mLimitToLast)
+    return mCache.getList(mClass, mRef.toString(), mStartAt, mEndAt, mLimitToLast)
         .doOnError(Throwable::printStackTrace)
         .onErrorReturn(throwable -> new ArrayList<>())
         .flatMap(caches -> {
@@ -66,8 +66,8 @@ public class FirecacheReference<T> {
               .onErrorReturn(throwable -> new ArrayList<>())
               .flatMap(syncs -> Observable.just(syncs)
                   .flatMapIterable(wrappers -> wrappers)
-                  .mergeWith(createListenerIfNecessary(caches, syncs)))
-              .flatMap(wrapper -> mCache.set(mRef.toString(), wrapper.key, wrapper).map(aVoid -> wrapper));
+                  .mergeWith(createListenerIfNecessary(caches, syncs))
+                  .flatMap(wrapper -> mCache.set(wrapper).map(aVoid -> Wrapper.clone((Wrapper<T>) wrapper))));
           return Observable.just(caches)
               .flatMapIterable(wrappers -> wrappers)
               .mergeWith(syncObservable)
@@ -88,7 +88,7 @@ public class FirecacheReference<T> {
         .onErrorReturn(throwable -> null)
         .mergeWith(FirechatUtils
             .observeValueEvent(mClass, getQuery())
-            .flatMap(wrapper -> mCache.set(mRef.toString(), wrapper).map(aVoid -> Wrapper.clone(wrapper)))
+            .flatMap(wrapper -> mCache.set(wrapper).map(aVoid -> Wrapper.clone((Wrapper<T>) wrapper)))
         )
         .filter(wrapper -> wrapper != null)
         .filter(mFilter::call)
@@ -122,8 +122,8 @@ public class FirecacheReference<T> {
           if (mEndAt != Config.DEFAULT_END_AT) {
             return Observable.create(SubscriptionUtils::onComplete);
           } else {
-            Wrapper<T> lastCache = caches.size() > 0 ? caches.get(caches.size() - 1) : null;
-            Wrapper<T> lastSync = syncs.size() > 0 ? syncs.get(syncs.size() - 1) : null;
+            Wrapper<T> lastCache = FirechatUtils.getLastItem(caches);
+            Wrapper<T> lastSync = FirechatUtils.getLastItem(syncs);
             double startAt = lastSync != null ?
                 lastSync.priority + 1 :
                 (lastCache != null ? lastCache.priority + 1 : Config.DEFAULT_START_AT);
@@ -153,7 +153,7 @@ public class FirecacheReference<T> {
 
   private Observable<List<Wrapper<T>>> syncDataAfterHavingCache(List<Wrapper<T>> caches) {
     return Observable.just(null).flatMap(o -> {
-      Wrapper<T> lastCache = caches.size() > 0 ? caches.get(caches.size() - 1) : null;
+      Wrapper<T> lastCache = FirechatUtils.getLastItem(caches);
       return FirechatUtils
           .observeSingleValueEvent(mClass, FirechatUtils.getQuery(
               mRef.orderByPriority(),

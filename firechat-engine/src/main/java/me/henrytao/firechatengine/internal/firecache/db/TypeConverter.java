@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.firecache;
+package me.henrytao.firechatengine.internal.firecache.db;
+
+import me.henrytao.firechatengine.utils.firechat.Wrapper;
 
 /**
- * Created by henrytao on 7/10/16.
+ * Created by henrytao on 7/12/16.
  */
-public class Config {
+@com.raizlabs.android.dbflow.annotation.TypeConverter
+public class TypeConverter extends com.raizlabs.android.dbflow.converter.TypeConverter<Integer, Wrapper.Type> {
 
-  public static final double DEFAULT_END_AT = 0;
+  @Override
+  public Integer getDBValue(Wrapper.Type model) {
+    return model.toInt();
+  }
 
-  public static final int DEFAULT_LIMIT_TO_LAST = 0;
-
-  public static final double DEFAULT_PRIORITY = 0;
-
-  public static final double DEFAULT_START_AT = 0;
+  @Override
+  public Wrapper.Type getModelValue(Integer data) {
+    return Wrapper.Type.fromInt(data);
+  }
 }

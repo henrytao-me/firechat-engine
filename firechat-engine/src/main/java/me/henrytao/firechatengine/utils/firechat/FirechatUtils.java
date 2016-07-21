@@ -22,6 +22,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
+
 import me.henrytao.firechatengine.internal.exception.DatabaseErrorException;
 import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
 import me.henrytao.firechatengine.internal.firecache.Config;
@@ -36,12 +38,20 @@ import rx.subscriptions.Subscriptions;
  */
 public class FirechatUtils {
 
+  public static <T> Wrapper<T> getLastItem(List<Wrapper<T>> items) {
+    Wrapper<T> result = null;
+    for (Wrapper<T> item : items) {
+      result = result == null || result.priority < item.priority ? item : result;
+    }
+    return result;
+  }
+
   public static Double getPriority(DataSnapshot data) {
     try {
       return (Double) data.getPriority();
     } catch (Exception ignore) {
     }
-    return 0d;
+    return Config.DEFAULT_PRIORITY;
   }
 
   public static Query getQuery(Query query, double startAt, double endAt, int limitToLast) {

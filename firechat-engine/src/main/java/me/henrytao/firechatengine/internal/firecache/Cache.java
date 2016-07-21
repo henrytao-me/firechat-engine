@@ -18,7 +18,6 @@ package me.henrytao.firechatengine.internal.firecache;
 
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
-import com.raizlabs.android.dbflow.sql.language.Method;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.sql.language.Where;
 
@@ -26,6 +25,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
 import me.henrytao.firechatengine.internal.firecache.db.Model;
@@ -72,17 +72,16 @@ public class Cache {
     });
   }
 
-  public <T> Observable<List<Wrapper<T>>> get(Class<T> tClass, String ref, double startAt, double endAt, int limitToLast) {
+  public <T> Observable<List<Wrapper<T>>> getList(Class<T> tClass, String ref, double startAt, double endAt, int limitToLast) {
     return Observable.create(subscriber -> {
       Where<Model> query = SQLite
           .select(
               Model_Table.ref,
               Model_Table.key,
               Model_Table.data,
-              Method.max(Model_Table.priority).as(Model_Table.priority.getNameAlias().nameRaw()))
+              Model_Table.priority)
           .from(Model.class)
-          .where(Model_Table.ref.eq(ref))
-          .groupBy(Model_Table.ref, Model_Table.key, Model_Table.data);
+          .where(Model_Table.ref.like(String.format(Locale.US, "%s/%%", ref)));
 
       if (startAt != Config.DEFAULT_END_AT) {
         query = query.and(Model_Table.priority.greaterThanOrEq(startAt));
@@ -90,14 +89,21 @@ public class Cache {
       if (endAt != Config.DEFAULT_END_AT) {
         query = query.and(Model_Table.priority.lessThanOrEq(endAt));
       }
-      query = query
-          .orderBy(Model_Table.priority, false)
-          .limit(limitToLast);
+      query = query.orderBy(Model_Table.priority, false);
+      if (limitToLast != Config.DEFAULT_LIMIT_TO_LAST) {
+        query = query.limit(limitToLast);
+      }
 
       List<Model> caches = query.queryList();
       List<Wrapper<T>> wrappers = new ArrayList<>();
-      for (Model model : caches) {
-        wrappers.add(Wrapper.create(tClass, model.getRef(), model.getKey(), model.getValue(tClass), model.getPriority()));
+      int i = caches.size();
+      while (--i >= 0) {
+        try {
+          Model model = caches.get(i);
+          wrappers.add(Wrapper.create(tClass, model.getRef(), model.getKey(), model.getValue(tClass), model.getPriority()));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
       if (wrappers.size() == 0) {
         SubscriptionUtils.onError(subscriber, new NoDataFoundException());
@@ -107,18 +113,23 @@ public class Cache {
     });
   }
 
-  public <T> Observable<Void> set(String ref, String key, Wrapper<T> wrapper) {
+  public <T> Observable<Void> set(Wrapper<T> wrapper) {
     return Observable.create(subscriber -> {
-      Model model = new Model(ref, wrapper);
-      model.save();
-      SubscriptionUtils.onNextAndComplete(subscriber);
-    });
-  }
+      List<Model> caches = SQLite
+          .select()
+          .from(Model.class)
+          .where(Model_Table.ref.eq(wrapper.ref))
+          .orderBy(Model_Table.priority, false)
+          .limit(1)
+          .queryList();
 
-  public <T> Observable<Void> set(String ref, Wrapper<T> wrapper) {
-    return Observable.create(subscriber -> {
-      Model model = new Model(ref, wrapper);
-      model.save();
+      if (caches.size() > 0) {
+        Model model = new Model(caches.get(0).getId(), wrapper);
+        model.update();
+      } else {
+        Model model = new Model(wrapper);
+        model.save();
+      }
       SubscriptionUtils.onNextAndComplete(subscriber);
     });
   }

@@ -16,18 +16,24 @@
 
 package me.henrytao.firechatengine.sample.data.model;
 
-import java.text.SimpleDateFormat;
-import java.util.Locale;
+import com.google.firebase.database.Exclude;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import me.henrytao.firechatengine.internal.firecache.BaseModel;
 
 /**
  * Created by henrytao on 7/1/16.
  */
+@Accessors(prefix = "m")
 public class ChatMessage implements BaseModel {
 
+  @Getter @Setter
   private String mMessage;
 
+  @Exclude
+  @Getter
   private double mPriority;
 
   public ChatMessage() {
@@ -40,14 +46,5 @@ public class ChatMessage implements BaseModel {
   @Override
   public void setPriority(double priority) {
     mPriority = priority;
-  }
-
-  public String getMessage() {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    return String.format(Locale.US, "%s - %s", mMessage, dateFormat.format(mPriority));
-  }
-
-  public void setMessage(String message) {
-    mMessage = message;
   }
 }

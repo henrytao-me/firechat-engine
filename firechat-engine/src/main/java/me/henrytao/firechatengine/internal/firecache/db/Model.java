@@ -30,6 +30,7 @@ import org.objenesis.strategy.StdInstantiatorStrategy;
 import java.io.ByteArrayOutputStream;
 
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
+import me.henrytao.firechatengine.utils.firechat.Wrapper.Type;
 
 /**
  * Created by henrytao on 7/12/16.
@@ -79,18 +80,31 @@ public class Model extends BaseModel {
   @Column
   String ref;
 
+  @Column
+  Type type;
+
   public Model() {
   }
 
-  protected Model(String ref, String key, Blob data, double priority) {
+  protected Model(String ref, String key, Type type, double priority, Blob data) {
     this.ref = ref;
     this.key = key;
-    this.data = data;
+    this.type = type;
     this.priority = priority;
+    this.data = data;
   }
 
-  public <T> Model(String ref, Wrapper<T> wrapper) {
-    this(ref, wrapper.key, toBlob(wrapper), wrapper.priority);
+  public <T> Model(Wrapper<T> wrapper) {
+    this(wrapper.ref, wrapper.key, wrapper.type, wrapper.priority, toBlob(wrapper));
+  }
+
+  public <T> Model(long id, Wrapper<T> wrapper) {
+    this(wrapper.ref, wrapper.key, wrapper.type, wrapper.priority, toBlob(wrapper));
+    this.id = id;
+  }
+
+  public long getId() {
+    return id;
   }
 
   public String getKey() {
@@ -105,7 +119,7 @@ public class Model extends BaseModel {
     return ref;
   }
 
-  public <T> T getValue(Class<T> tClass) {
+  public <T> T getValue(Class<T> tClass) throws Exception {
     Kryo kryo = getKryoInstance();
     Input input = new Input(data.getBlob());
     T value = kryo.readObject(input, tClass);

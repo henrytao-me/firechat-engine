@@ -136,7 +136,7 @@ public class FirechatReference<T> {
     //                  listener = listener.startAt(startAt);
     //                }
     //                mNextStartAtSubject.onNext(startAt);
-    //                mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
+    //                mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.getList(0)) - 1d);
     //              }
     //            } else {
     //
@@ -149,9 +149,9 @@ public class FirechatReference<T> {
     //            }
     //
     //            mNextStartAtSubject.onNext(startAt);
-    //            mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.get(0)) - 1d);
+    //            mNextEndAtSubject.onNext(FirechatUtils.getPriority(data.getList(0)) - 1d);
     //            if (endAt == DEFAULT_END_AT) {
-    //              listener = getQuery().startAt(FirechatUtils.getPriority(data.get(data.size() - 1)) + 1d);
+    //              listener = getQuery().startAt(FirechatUtils.getPriority(data.getList(data.size() - 1)) + 1d);
     //            }
     //            return Observable.just(data)
     //                .flatMapIterable(dataSnapshots -> dataSnapshots);

@@ -63,15 +63,33 @@ public class ExampleUnitTest {
   public void testFirebase() throws Exception {
     FirebaseDatabase.getInstance().getReference().child("demo").addListenerForSingleValueEvent(new ValueEventListener() {
       @Override
-      public void onDataChange(DataSnapshot dataSnapshot) {
-        System.out.println(String.format(Locale.US, "onDataChange | %s", dataSnapshot.toString()));
-      }
-
-      @Override
       public void onCancelled(DatabaseError databaseError) {
         System.out.println(String.format(Locale.US, "onCancelled | %s", databaseError.toString()));
       }
+
+      @Override
+      public void onDataChange(DataSnapshot dataSnapshot) {
+        System.out.println(String.format(Locale.US, "onDataChange | %s", dataSnapshot.toString()));
+      }
     });
+    Thread.sleep(5000);
+  }
+
+  @Test
+  public void testFirebaseValueOff() throws Exception {
+    FirebaseDatabase.getInstance().getReference().child("messages").child("-KN0vw3OQM9FqHmNFSJc").addValueEventListener(
+        new ValueEventListener() {
+          @Override
+          public void onCancelled(DatabaseError databaseError) {
+
+          }
+
+          @Override
+          public void onDataChange(DataSnapshot dataSnapshot) {
+            int i = 0;
+            i = 5;
+          }
+        });
     Thread.sleep(5000);
   }
 
