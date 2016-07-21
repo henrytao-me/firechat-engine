@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine;
+package me.henrytao.firechatengine.utils.rx;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -72,7 +72,7 @@ public class JobExecutor implements Executor {
 
   private static class ThreadFactory implements java.util.concurrent.ThreadFactory {
 
-    private static final String THREAD_NAME = "firecache-executor-thread-";
+    private static final String THREAD_NAME = "firechat-executor-thread-";
 
     private int counter = 0;
 

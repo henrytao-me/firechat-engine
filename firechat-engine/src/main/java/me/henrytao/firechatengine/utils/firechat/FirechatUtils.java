@@ -22,6 +22,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import me.henrytao.firechatengine.internal.exception.DatabaseErrorException;
@@ -38,7 +39,21 @@ import rx.subscriptions.Subscriptions;
  */
 public class FirechatUtils {
 
+  public static <T> Wrapper<T> getFirstItem(List<Wrapper<T>> items) {
+    if (items == null || items.size() == 0) {
+      return null;
+    }
+    Wrapper<T> result = null;
+    for (Wrapper<T> item : items) {
+      result = result == null || result.priority > item.priority ? item : result;
+    }
+    return result;
+  }
+
   public static <T> Wrapper<T> getLastItem(List<Wrapper<T>> items) {
+    if (items == null || items.size() == 0) {
+      return null;
+    }
     Wrapper<T> result = null;
     for (Wrapper<T> item : items) {
       result = result == null || result.priority < item.priority ? item : result;
@@ -55,6 +70,9 @@ public class FirechatUtils {
   }
 
   public static Query getQuery(Query query, double startAt, double endAt, int limitToLast) {
+    if (limitToLast < Config.DEFAULT_LIMIT_TO_LAST) {
+      return null;
+    }
     if (startAt != Config.DEFAULT_START_AT) {
       query = query.startAt(startAt);
     }
@@ -67,6 +85,17 @@ public class FirechatUtils {
     return query;
   }
 
+  public static <T> List<T> merge(List<T> items1, List<T> items2) {
+    List<T> result = new ArrayList<>();
+    if (items1 != null) {
+      result.addAll(items1);
+    }
+    if (items2 != null) {
+      result.addAll(items2);
+    }
+    return result;
+  }
+
   public static <T> Observable<Wrapper<T>> observeChildEvent(Class<T> tClass, Query query) {
     return Observable.create(s -> {
       SerializedSubscriber<Wrapper<T>> subscriber = new SerializedSubscriber<>(s);
@@ -76,7 +105,8 @@ public class FirechatUtils {
       }
       ChildEventListener listener = new ChildEventListener() {
         @Override
-        public void onCancelled(DatabaseError databaseError) {
+        public
+void onCancelled(DatabaseError databaseError) {
           SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
         }
 
@@ -106,8 +136,12 @@ public class FirechatUtils {
   }
 
   public static <T> Observable<Wrapper<T>> observeSingleValueEvent(Class<T> tClass, Query query) {
+    return observeSingleValueEventAsList(tClass, query).flatMapIterable(wrappers -> wrappers);
+  }
+
+  public static <T> Observable<List<Wrapper<T>>> observeSingleValueEventAsList(Class<T> tClass, Query query) {
     return Observable.create(s -> {
-      SerializedSubscriber<Wrapper<T>> subscriber = new SerializedSubscriber<>(s);
+      SerializedSubscriber<List<Wrapper<T>>> subscriber = new SerializedSubscriber<>(s);
       if (query == null) {
         SubscriptionUtils.onComplete(subscriber);
         return;
@@ -123,14 +157,15 @@ public class FirechatUtils {
           if (dataSnapshot == null || !dataSnapshot.exists()) {
             SubscriptionUtils.onError(subscriber, new NoDataFoundException());
           } else {
+            List<Wrapper<T>> result = new ArrayList<>();
             if (dataSnapshot.getChildrenCount() == 0) {
-              SubscriptionUtils.onNextAndComplete(subscriber, Wrapper.create(tClass, dataSnapshot));
+              result.add(Wrapper.create(tClass, dataSnapshot));
             } else {
               for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, snapshot));
+                result.add(Wrapper.create(tClass, snapshot));
               }
-              SubscriptionUtils.onComplete(subscriber);
             }
+            SubscriptionUtils.onNextAndComplete(subscriber, result);
           }
         }
       };

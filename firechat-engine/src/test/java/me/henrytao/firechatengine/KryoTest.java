@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -38,6 +39,14 @@ import rx.Observable;
  * To work on unit tests, switch the Test Artifact in the Build Variants view.
  */
 public class KryoTest {
+
+  @Test
+  public void testLoop() throws Exception {
+    List<String> data = null;
+    for (String value : data) {
+
+    }
+  }
 
   @Test
   public void testKyro() throws Exception {

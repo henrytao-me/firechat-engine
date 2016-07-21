@@ -22,6 +22,8 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import java.util.Map;
 
@@ -47,9 +49,25 @@ public class ChatActivity extends BaseActivity {
   private ChatViewModel mViewModel;
 
   @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.menu_home, menu);
+    return true;
+  }
+
+  @Override
   public void onInitializeViewModels() {
     mViewModel = new ChatViewModel();
     addViewModel(mViewModel);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.next:
+        mViewModel.next();
+        return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   @Override
