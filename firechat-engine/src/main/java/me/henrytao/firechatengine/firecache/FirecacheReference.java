@@ -219,7 +219,12 @@ public class FirecacheReference<T> {
             lastCache != null ? lastCache.priority + 1 : mStartAt.getValue(),
             mEndAt.getValue(),
             lastCache != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast
-        )).toList();
+        )).toList().onErrorResumeNext(throwable -> {
+          if (throwable instanceof NoDataFoundException) {
+            return Observable.just(new ArrayList<>());
+          }
+          return Observable.error(throwable);
+        });
       }
 
       return syncObservable.flatMap(syncs -> {
