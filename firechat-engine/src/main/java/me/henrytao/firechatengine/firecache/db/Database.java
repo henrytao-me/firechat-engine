@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.core.model;
+package me.henrytao.firechatengine.firecache.db;
 
 /**
- * Created by henrytao on 7/9/16.
+ * Created by henrytao on 7/12/16.
  */
-public interface Base {
+@com.raizlabs.android.dbflow.annotation.Database(name = Database.NAME, version = Database.VERSION)
+public class Database {
 
+  public static final String NAME = "firecache";
+
+  public static final int VERSION = 1;
 }

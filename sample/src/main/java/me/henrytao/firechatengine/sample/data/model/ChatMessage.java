@@ -21,19 +21,17 @@ import com.google.firebase.database.Exclude;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import me.henrytao.firechatengine.internal.firecache.BaseModel;
+import me.henrytao.firechatengine.core.model.Priority;
 
 /**
  * Created by henrytao on 7/1/16.
  */
 @Accessors(prefix = "m")
-public class ChatMessage implements BaseModel {
+public class ChatMessage implements Priority {
 
   @Getter @Setter
   private String mMessage;
 
-  @Exclude
-  @Getter
   private double mPriority;
 
   public ChatMessage() {
@@ -41,6 +39,11 @@ public class ChatMessage implements BaseModel {
 
   public ChatMessage(String message) {
     mMessage = message;
+  }
+
+  @Exclude
+  public double getPriority() {
+    return mPriority;
   }
 
   @Override

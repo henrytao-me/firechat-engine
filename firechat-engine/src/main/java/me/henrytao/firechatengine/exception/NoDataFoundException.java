@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.exception;
+package me.henrytao.firechatengine.exception;
 
 /**
  * Created by henrytao on 7/6/16.

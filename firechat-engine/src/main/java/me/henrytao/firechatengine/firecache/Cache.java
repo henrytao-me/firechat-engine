@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.firecache;
+package me.henrytao.firechatengine.firecache;
 
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
@@ -27,9 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
-import me.henrytao.firechatengine.internal.firecache.db.Model;
-import me.henrytao.firechatengine.internal.firecache.db.Model_Table;
+import me.henrytao.firechatengine.config.Constants;
+import me.henrytao.firechatengine.exception.NoDataFoundException;
+import me.henrytao.firechatengine.firecache.db.Model;
+import me.henrytao.firechatengine.firecache.db.Model_Table;
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
@@ -83,14 +84,14 @@ public class Cache {
           .from(Model.class)
           .where(Model_Table.ref.like(String.format(Locale.US, "%s/%%", ref)));
 
-      if (startAt != Config.DEFAULT_END_AT) {
+      if (startAt != Constants.DEFAULT_END_AT) {
         query = query.and(Model_Table.priority.greaterThanOrEq(startAt));
       }
-      if (endAt != Config.DEFAULT_END_AT) {
+      if (endAt != Constants.DEFAULT_END_AT) {
         query = query.and(Model_Table.priority.lessThanOrEq(endAt));
       }
       query = query.orderBy(Model_Table.priority, false);
-      if (limitToLast != Config.DEFAULT_LIMIT_TO_LAST) {
+      if (limitToLast != Constants.DEFAULT_LIMIT_TO_LAST) {
         query = query.limit(limitToLast);
       }
 

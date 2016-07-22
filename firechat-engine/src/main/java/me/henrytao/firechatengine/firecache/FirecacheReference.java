@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.firecache;
+package me.henrytao.firechatengine.firecache;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
@@ -24,7 +24,8 @@ import android.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
+import me.henrytao.firechatengine.config.Constants;
+import me.henrytao.firechatengine.exception.NoDataFoundException;
 import me.henrytao.firechatengine.utils.firechat.FirechatUtils;
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
@@ -48,19 +49,19 @@ public class FirecacheReference<T> {
 
   private final DatabaseReference mRef;
 
-  private BehaviorSubject<Double> mEndAt = BehaviorSubject.create(Config.DEFAULT_END_AT);
+  private BehaviorSubject<Double> mEndAt = BehaviorSubject.create(Constants.DEFAULT_END_AT);
 
   private Func1<Wrapper<T>, Boolean> mFilter = wrapper -> wrapper != null;
 
   private boolean mIsOnNext = false;
 
-  private int mLimitToLast = Config.DEFAULT_LIMIT_TO_LAST;
+  private int mLimitToLast = Constants.DEFAULT_LIMIT_TO_LAST;
 
   private BehaviorSubject<Double> mNextEndAt = BehaviorSubject.create();
 
   private boolean mShouldKeepSyncing = true;
 
-  private BehaviorSubject<Double> mStartAt = BehaviorSubject.create(Config.DEFAULT_START_AT);
+  private BehaviorSubject<Double> mStartAt = BehaviorSubject.create(Constants.DEFAULT_START_AT);
 
   protected FirecacheReference(Class<T> tClass, DatabaseReference ref, boolean isOnNext) {
     mClass = tClass;
@@ -151,7 +152,7 @@ public class FirecacheReference<T> {
       Wrapper<T> first = FirechatUtils.getFirstItem(data);
       Wrapper<T> last = FirechatUtils.getLastItem(data);
       if (!mShouldKeepSyncing) {
-        mNextEndAt.onNext(first != null ? first.priority - 1 : Config.DEFAULT_END_AT);
+        mNextEndAt.onNext(first != null ? first.priority - 1 : Constants.DEFAULT_END_AT);
         return Observable.create(SubscriptionUtils::onComplete);
       } else {
         if (first != null) {
@@ -160,8 +161,8 @@ public class FirecacheReference<T> {
         return FirechatUtils.observeChildEvent(mClass, FirechatUtils.getQuery(
             mRef.orderByPriority(),
             last != null ? last.priority + 1 : mStartAt.getValue(),
-            Config.DEFAULT_END_AT,
-            last != null ? Config.DEFAULT_LIMIT_TO_LAST : mLimitToLast))
+            Constants.DEFAULT_END_AT,
+            last != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast))
             .map(wrapper -> {
               if (!mNextEndAt.hasValue()) {
                 mNextEndAt.onNext(wrapper.priority - 1);
@@ -174,13 +175,13 @@ public class FirecacheReference<T> {
 
   private Query getQuery() {
     Query query = mRef.orderByPriority();
-    if (mStartAt.getValue() != Config.DEFAULT_START_AT) {
+    if (mStartAt.getValue() != Constants.DEFAULT_START_AT) {
       query = query.startAt(mStartAt.getValue());
     }
-    if (mEndAt.getValue() != Config.DEFAULT_END_AT) {
+    if (mEndAt.getValue() != Constants.DEFAULT_END_AT) {
       query = query.endAt(mEndAt.getValue());
     }
-    if (mLimitToLast != Config.DEFAULT_LIMIT_TO_LAST) {
+    if (mLimitToLast != Constants.DEFAULT_LIMIT_TO_LAST) {
       query = query.limitToLast(mLimitToLast);
     }
     return query;
@@ -188,7 +189,7 @@ public class FirecacheReference<T> {
 
   private Observable<Pair<Double, Double>> onReady() {
     return mStartAt.flatMap(startAt -> mEndAt.map(endAt -> new Pair<>(startAt, endAt))).first().flatMap(startEndAt -> {
-      if (mIsOnNext && startEndAt.second == Config.DEFAULT_END_AT) {
+      if (mIsOnNext && startEndAt.second == Constants.DEFAULT_END_AT) {
         return Observable.error(new NoDataFoundException());
       }
       return Observable.just(startEndAt);
@@ -214,7 +215,7 @@ public class FirecacheReference<T> {
             mLimitToLast
         ));
       } else if (mIsOnNext) {
-        if ((mLimitToLast == Config.DEFAULT_LIMIT_TO_LAST || caches.size() < mLimitToLast)) {
+        if ((mLimitToLast == Constants.DEFAULT_LIMIT_TO_LAST || caches.size() < mLimitToLast)) {
           syncObservable = FirechatUtils.observeSingleValueEvent(mClass, FirechatUtils.getQuery(
               mRef.orderByPriority(),
               mStartAt.getValue(),
@@ -229,7 +230,7 @@ public class FirecacheReference<T> {
             mRef.orderByPriority(),
             lastCache.priority + 1,
             mEndAt.getValue(),
-            Config.DEFAULT_LIMIT_TO_LAST
+            Constants.DEFAULT_LIMIT_TO_LAST
         ));
       }
 

@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.firecache.db;
+package me.henrytao.firechatengine.config;
 
 /**
- * Created by henrytao on 7/12/16.
+ * Created by henrytao on 7/10/16.
  */
-@com.raizlabs.android.dbflow.annotation.Database(name = Database.NAME, version = Database.VERSION)
-public class Database {
+public class Constants {
 
-  public static final String NAME = "firecache";
+  public static final double DEFAULT_END_AT = 0;
 
-  public static final int VERSION = 1;
+  public static final int DEFAULT_LIMIT_TO_LAST = 0;
+
+  public static final double DEFAULT_PRIORITY = 0;
+
+  public static final double DEFAULT_START_AT = 0;
 }

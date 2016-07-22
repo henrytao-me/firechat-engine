@@ -25,16 +25,13 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import me.henrytao.firechatengine.internal.firecache.FirecacheReference;
+import me.henrytao.firechatengine.firecache.FirecacheReference;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.sample.util.Logger;
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.mvvmlifecycle.rx.UnsubscribeLifeCycle;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 
 /**
  * Created by henrytao on 7/1/16.
@@ -63,15 +60,16 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
           return wrapper.type == Wrapper.Type.ON_CHILD_ADDED || wrapper.type == Wrapper.Type.FROM_CACHE;
         })
         .limitToLast(5);
+  }
 
-    manageSubscription(Observable.timer(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
-      mRef.addChildEventListener()
-          .subscribe(chatMessage -> {
-            addData(chatMessage);
-          }, Throwable::printStackTrace, () -> {
-            mLogger.d("done");
-          });
-    }), UnsubscribeLifeCycle.DESTROY);
+  @Override
+  public void onCreateView() {
+    super.onCreateView();
+    manageSubscription(mRef.addChildEventListener().subscribe(chatMessage -> {
+      addData(chatMessage);
+    }, Throwable::printStackTrace, () -> {
+      mLogger.d("done");
+    }), UnsubscribeLifeCycle.DESTROY_VIEW);
   }
 
   public List<ChatMessage> getData() {
@@ -80,12 +78,11 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
 
   public void next() {
     mRef = mRef.next();
-    manageSubscription(mRef.addChildEventListener()
-        .subscribe(chatMessage -> {
-          addData(chatMessage);
-        }, Throwable::printStackTrace, () -> {
-          mLogger.d("done next");
-        }), UnsubscribeLifeCycle.DESTROY);
+    manageSubscription(mRef.addChildEventListener().subscribe(chatMessage -> {
+      addData(chatMessage);
+    }, Throwable::printStackTrace, () -> {
+      mLogger.d("done next");
+    }), UnsubscribeLifeCycle.DESTROY_VIEW);
   }
 
   public void sendMessage() {

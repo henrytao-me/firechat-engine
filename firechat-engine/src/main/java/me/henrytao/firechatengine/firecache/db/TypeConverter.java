@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.exception;
+package me.henrytao.firechatengine.firecache.db;
 
-import com.google.firebase.database.DatabaseError;
+import me.henrytao.firechatengine.utils.firechat.Wrapper;
 
-public class DatabaseErrorException extends RuntimeException {
+/**
+ * Created by henrytao on 7/12/16.
+ */
+@com.raizlabs.android.dbflow.annotation.TypeConverter
+public class TypeConverter extends com.raizlabs.android.dbflow.converter.TypeConverter<Integer, Wrapper.Type> {
 
-  public static DatabaseErrorException create(DatabaseError error) {
-    return new DatabaseErrorException(error);
+  @Override
+  public Integer getDBValue(Wrapper.Type model) {
+    return model.toInt();
   }
 
-  private final DatabaseError mError;
-
-  protected DatabaseErrorException(DatabaseError error) {
-    mError = error;
-  }
-
-  public DatabaseError getException() {
-    return mError;
+  @Override
+  public Wrapper.Type getModelValue(Integer data) {
+    return Wrapper.Type.fromInt(data);
   }
 }

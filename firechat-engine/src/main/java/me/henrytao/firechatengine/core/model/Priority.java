@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.firecache;
+package me.henrytao.firechatengine.core.model;
 
 /**
- * Created by henrytao on 7/10/16.
+ * Created by henrytao on 7/13/16.
  */
-public class Config {
+public interface Priority {
 
-  public static final double DEFAULT_END_AT = 0;
-
-  public static final int DEFAULT_LIMIT_TO_LAST = 0;
-
-  public static final double DEFAULT_PRIORITY = 0;
-
-  public static final double DEFAULT_START_AT = 0;
+  void setPriority(double priority);
 }

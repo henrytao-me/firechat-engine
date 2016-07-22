@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import me.henrytao.firechatengine.internal.firecache.BaseModel;
+import me.henrytao.firechatengine.core.model.Priority;
 
 public class Wrapper<T> {
 
@@ -68,8 +68,8 @@ public class Wrapper<T> {
     this.data = data;
     this.type = type;
     this.priority = priority;
-    if (data instanceof BaseModel) {
-      ((BaseModel) data).setPriority(priority);
+    if (data instanceof Priority) {
+      ((Priority) data).setPriority(priority);
     }
   }
 

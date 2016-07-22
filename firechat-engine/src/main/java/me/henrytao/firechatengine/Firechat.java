@@ -20,7 +20,7 @@ import android.content.Context;
 
 import me.henrytao.firechatengine.core.model.Message;
 import me.henrytao.firechatengine.core.model.Room;
-import me.henrytao.firechatengine.internal.firecache.Cache;
+import me.henrytao.firechatengine.firecache.Cache;
 import rx.Observable;
 
 /**

@@ -25,9 +25,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.henrytao.firechatengine.internal.exception.DatabaseErrorException;
-import me.henrytao.firechatengine.internal.exception.NoDataFoundException;
-import me.henrytao.firechatengine.internal.firecache.Config;
+import me.henrytao.firechatengine.exception.DatabaseErrorException;
+import me.henrytao.firechatengine.exception.NoDataFoundException;
+import me.henrytao.firechatengine.config.Constants;
 import me.henrytao.firechatengine.utils.firechat.Wrapper.Type;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
@@ -66,20 +66,20 @@ public class FirechatUtils {
       return (Double) data.getPriority();
     } catch (Exception ignore) {
     }
-    return Config.DEFAULT_PRIORITY;
+    return Constants.DEFAULT_PRIORITY;
   }
 
   public static Query getQuery(Query query, double startAt, double endAt, int limitToLast) {
-    if (limitToLast < Config.DEFAULT_LIMIT_TO_LAST) {
+    if (limitToLast < Constants.DEFAULT_LIMIT_TO_LAST) {
       return null;
     }
-    if (startAt != Config.DEFAULT_START_AT) {
+    if (startAt != Constants.DEFAULT_START_AT) {
       query = query.startAt(startAt);
     }
-    if (endAt != Config.DEFAULT_END_AT) {
+    if (endAt != Constants.DEFAULT_END_AT) {
       query = query.endAt(endAt);
     }
-    if (limitToLast != Config.DEFAULT_LIMIT_TO_LAST) {
+    if (limitToLast != Constants.DEFAULT_LIMIT_TO_LAST) {
       query = query.limitToLast(limitToLast);
     }
     return query;
@@ -105,8 +105,7 @@ public class FirechatUtils {
       }
       ChildEventListener listener = new ChildEventListener() {
         @Override
-        public
-void onCancelled(DatabaseError databaseError) {
+        public void onCancelled(DatabaseError databaseError) {
           SubscriptionUtils.onError(subscriber, DatabaseErrorException.create(databaseError));
         }
 
@@ -189,7 +188,11 @@ void onCancelled(DatabaseError databaseError) {
 
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
-          SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, dataSnapshot, Type.ON_CHILD_CHANGED));
+          if (dataSnapshot == null || !dataSnapshot.exists()) {
+            SubscriptionUtils.onError(subscriber, new NoDataFoundException());
+          } else {
+            SubscriptionUtils.onNext(subscriber, Wrapper.create(tClass, dataSnapshot, Type.ON_CHILD_ADDED));
+          }
         }
       };
       query.addValueEventListener(listener);

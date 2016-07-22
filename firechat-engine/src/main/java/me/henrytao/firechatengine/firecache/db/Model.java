@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.internal.firecache.db;
+package me.henrytao.firechatengine.firecache.db;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.Index;
+import com.raizlabs.android.dbflow.annotation.IndexGroup;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.data.Blob;
@@ -35,7 +37,9 @@ import me.henrytao.firechatengine.utils.firechat.Wrapper.Type;
 /**
  * Created by henrytao on 7/12/16.
  */
-@Table(database = Database.class, name = Model.NAME)
+@Table(database = Database.class, name = Model.NAME, indexGroups = {
+    @IndexGroup(number = 1, name = "primary")
+})
 public class Model extends BaseModel {
 
   public static final String NAME = "cache";
@@ -74,6 +78,7 @@ public class Model extends BaseModel {
   @Column
   String key;
 
+  @Index(indexGroups = 1)
   @Column
   double priority;
 
