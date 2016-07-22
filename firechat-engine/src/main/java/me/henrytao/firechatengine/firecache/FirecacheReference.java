@@ -174,6 +174,12 @@ public class FirecacheReference<T> {
     return query;
   }
 
+  private void onNext(Wrapper<T> wrapper) {
+    if (!mNextEndAt.hasValue() && wrapper != null) {
+      mNextEndAt.onNext(wrapper.priority - 1);
+    }
+  }
+
   private Observable<Pair<Double, Double>> onReady() {
     return mStartAt.flatMap(startAt -> mEndAt.map(endAt -> new Pair<>(startAt, endAt))).first().flatMap(startEndAt -> {
       if (mIsOnNext && startEndAt.second == Constants.DEFAULT_END_AT) {
@@ -193,9 +199,11 @@ public class FirecacheReference<T> {
       Wrapper<T> firstCache = FirechatUtils.getFirstItem(caches);
       Wrapper<T> lastCache = FirechatUtils.getLastItem(caches);
 
+      onNext(firstCache);
+
       Observable<List<Wrapper<T>>> syncObservable = null;
       if (mIsOnNext) {
-        if (mLimitToLast != Constants.DEFAULT_LIMIT_TO_LAST && caches.size() < mLimitToLast) {
+        if (caches.size() == 0) {
           syncObservable = FirechatUtils.observeSingleValueEvent(mClass, FirechatUtils.getQuery(
               mRef.orderByPriority(),
               mStartAt.getValue(),
@@ -217,25 +225,13 @@ public class FirecacheReference<T> {
       return syncObservable.flatMap(syncs -> {
         Observable<List<Wrapper<T>>> observable = Observable.just(syncs);
         List<Wrapper<T>> data = FirechatUtils.merge(caches, syncs);
-        if (mIsOnNext) {
-          if (data.size() == 0) {
-            throw new NoDataFoundException();
-          }
-          mNextEndAt.onNext(FirechatUtils.getFirstItem(data).priority - 1);
-          return observable.flatMapIterable(wrappers -> wrappers);
-        } else {
-          if (data.size() > 0) {
-            mNextEndAt.onNext(FirechatUtils.getFirstItem(data).priority - 1);
-          }
-          return observable
-              .flatMapIterable(wrappers -> wrappers)
-              .mergeWith(createListenerIfNecessary(data).map(wrapper -> {
-                if (!mIsOnNext && !mNextEndAt.hasValue()) {
-                  mNextEndAt.onNext(wrapper.priority - 1);
-                }
-                return wrapper;
-              }));
-        }
+        return observable
+            .flatMapIterable(wrappers -> wrappers)
+            .mergeWith(createListenerIfNecessary(data))
+            .map(wrapper -> {
+              onNext(wrapper);
+              return wrapper;
+            });
       });
     });
   }
