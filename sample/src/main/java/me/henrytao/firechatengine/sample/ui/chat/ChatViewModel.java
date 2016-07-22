@@ -29,7 +29,7 @@ import java.util.List;
 import me.henrytao.firechatengine.firecache.FirecacheReference;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
-import me.henrytao.firechatengine.sample.util.Logger;
+import me.henrytao.firechatengine.utils.Logger;
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.mvvmlifecycle.rx.UnsubscribeLifeCycle;
 

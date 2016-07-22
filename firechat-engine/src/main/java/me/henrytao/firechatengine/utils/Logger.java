@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.henrytao.firechatengine.sample.util;
+package me.henrytao.firechatengine.utils;
 
 import android.util.Log;
 

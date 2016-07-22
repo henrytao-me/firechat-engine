@@ -158,10 +158,10 @@ public class FirechatUtils {
           } else {
             List<Wrapper<T>> result = new ArrayList<>();
             if (dataSnapshot.getChildrenCount() == 0) {
-              result.add(Wrapper.create(tClass, dataSnapshot));
+              result.add(Wrapper.create(tClass, dataSnapshot, Type.ON_CHILD_ADDED));
             } else {
               for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                result.add(Wrapper.create(tClass, snapshot));
+                result.add(Wrapper.create(tClass, snapshot, Type.ON_CHILD_ADDED));
               }
             }
             SubscriptionUtils.onNextAndComplete(subscriber, result);

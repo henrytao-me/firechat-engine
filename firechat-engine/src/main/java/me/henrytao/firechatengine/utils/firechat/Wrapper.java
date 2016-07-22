@@ -30,10 +30,6 @@ public class Wrapper<T> {
     return new Wrapper<T>(wrapper.mClass, wrapper.ref, wrapper.key, wrapper.data, wrapper.type, wrapper.priority);
   }
 
-  public static <T> Wrapper<T> create(Class<T> tClass, DataSnapshot dataSnapshot) {
-    return create(tClass, dataSnapshot, Type.ON_CHILD_ADDED);
-  }
-
   public static <T> Wrapper<T> create(Class<T> tClass, String ref, String key, T data, double priority) {
     return new Wrapper<T>(tClass, ref, key, data, priority);
   }

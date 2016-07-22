@@ -32,7 +32,6 @@ import org.objenesis.strategy.StdInstantiatorStrategy;
 import java.io.ByteArrayOutputStream;
 
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
-import me.henrytao.firechatengine.utils.firechat.Wrapper.Type;
 
 /**
  * Created by henrytao on 7/12/16.
@@ -85,26 +84,22 @@ public class Model extends BaseModel {
   @Column
   String ref;
 
-  @Column
-  Type type;
-
   public Model() {
   }
 
-  protected Model(String ref, String key, Type type, double priority, Blob data) {
+  protected Model(String ref, String key, double priority, Blob data) {
     this.ref = ref;
     this.key = key;
-    this.type = type;
     this.priority = priority;
     this.data = data;
   }
 
   public <T> Model(Wrapper<T> wrapper) {
-    this(wrapper.ref, wrapper.key, wrapper.type, wrapper.priority, toBlob(wrapper));
+    this(wrapper.ref, wrapper.key, wrapper.priority, toBlob(wrapper));
   }
 
   public <T> Model(long id, Wrapper<T> wrapper) {
-    this(wrapper.ref, wrapper.key, wrapper.type, wrapper.priority, toBlob(wrapper));
+    this(wrapper.ref, wrapper.key, wrapper.priority, toBlob(wrapper));
     this.id = id;
   }
 
