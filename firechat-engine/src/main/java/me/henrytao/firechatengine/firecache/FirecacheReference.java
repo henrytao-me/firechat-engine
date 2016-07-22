@@ -146,29 +146,16 @@ public class FirecacheReference<T> {
     return this;
   }
 
-  private Observable<Wrapper<T>> createListenerIfNecessary(List<Wrapper<T>> caches, List<Wrapper<T>> syncs) {
-    return Observable.just(null).flatMap(o -> {
-      List<Wrapper<T>> data = FirechatUtils.merge(caches, syncs);
-      Wrapper<T> first = FirechatUtils.getFirstItem(data);
-      Wrapper<T> last = FirechatUtils.getLastItem(data);
-      if (!mShouldKeepSyncing) {
-        mNextEndAt.onNext(first != null ? first.priority - 1 : Constants.DEFAULT_END_AT);
-        return Observable.create(SubscriptionUtils::onComplete);
-      } else {
-        if (first != null) {
-          mNextEndAt.onNext(first.priority - 1);
-        }
+  private Observable<Wrapper<T>> createListenerIfNecessary(List<Wrapper<T>> syncs) {
+    return Observable.just(FirechatUtils.getLastItem(syncs)).flatMap(lastSync -> {
+      if (mShouldKeepSyncing) {
         return FirechatUtils.observeChildEvent(mClass, FirechatUtils.getQuery(
             mRef.orderByPriority(),
-            last != null ? last.priority + 1 : mStartAt.getValue(),
+            lastSync != null ? lastSync.priority + 1 : mStartAt.getValue(),
             Constants.DEFAULT_END_AT,
-            last != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast))
-            .map(wrapper -> {
-              if (!mNextEndAt.hasValue()) {
-                mNextEndAt.onNext(wrapper.priority - 1);
-              }
-              return wrapper;
-            });
+            lastSync != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast));
+      } else {
+        return Observable.create(SubscriptionUtils::onComplete);
       }
     });
   }
@@ -206,41 +193,50 @@ public class FirecacheReference<T> {
       Wrapper<T> firstCache = FirechatUtils.getFirstItem(caches);
       Wrapper<T> lastCache = FirechatUtils.getLastItem(caches);
 
-      Observable<Wrapper<T>> syncObservable = null;
-      if (firstCache == null || lastCache == null) {
-        syncObservable = FirechatUtils.observeSingleValueEvent(mClass, FirechatUtils.getQuery(
-            mRef.orderByPriority(),
-            mStartAt.getValue(),
-            mEndAt.getValue(),
-            mLimitToLast
-        ));
-      } else if (mIsOnNext) {
-        if ((mLimitToLast == Constants.DEFAULT_LIMIT_TO_LAST || caches.size() < mLimitToLast)) {
+      Observable<List<Wrapper<T>>> syncObservable = null;
+      if (mIsOnNext) {
+        if (mLimitToLast != Constants.DEFAULT_LIMIT_TO_LAST && caches.size() < mLimitToLast) {
           syncObservable = FirechatUtils.observeSingleValueEvent(mClass, FirechatUtils.getQuery(
               mRef.orderByPriority(),
               mStartAt.getValue(),
-              firstCache.priority - 1,
+              firstCache != null ? firstCache.priority - 1 : mEndAt.getValue(),
               mLimitToLast - caches.size()
-          ));
+          )).toList();
         } else {
-          syncObservable = Observable.just(null);
+          syncObservable = Observable.just(new ArrayList<>());
         }
       } else {
         syncObservable = FirechatUtils.observeSingleValueEvent(mClass, FirechatUtils.getQuery(
             mRef.orderByPriority(),
-            lastCache.priority + 1,
+            lastCache != null ? lastCache.priority + 1 : mStartAt.getValue(),
             mEndAt.getValue(),
-            Constants.DEFAULT_LIMIT_TO_LAST
-        ));
+            lastCache != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast
+        )).toList();
       }
 
-      return syncObservable
-          .onErrorReturn(throwable -> null)
-          .filter(wrapper -> wrapper != null)
-          .toList()
-          .flatMap(syncs -> Observable.just(syncs)
+      return syncObservable.flatMap(syncs -> {
+        Observable<List<Wrapper<T>>> observable = Observable.just(syncs);
+        List<Wrapper<T>> data = FirechatUtils.merge(caches, syncs);
+        if (mIsOnNext) {
+          if (data.size() == 0) {
+            throw new NoDataFoundException();
+          }
+          mNextEndAt.onNext(FirechatUtils.getFirstItem(data).priority - 1);
+          return observable.flatMapIterable(wrappers -> wrappers);
+        } else {
+          if (data.size() > 0) {
+            mNextEndAt.onNext(FirechatUtils.getFirstItem(data).priority - 1);
+          }
+          return observable
               .flatMapIterable(wrappers -> wrappers)
-              .mergeWith(createListenerIfNecessary(caches, syncs)));
+              .mergeWith(createListenerIfNecessary(data).map(wrapper -> {
+                if (!mIsOnNext && !mNextEndAt.hasValue()) {
+                  mNextEndAt.onNext(wrapper.priority - 1);
+                }
+                return wrapper;
+              }));
+        }
+      });
     });
   }
 }

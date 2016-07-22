@@ -22,12 +22,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import me.henrytao.firechatengine.config.Constants;
 import me.henrytao.firechatengine.exception.DatabaseErrorException;
 import me.henrytao.firechatengine.exception.NoDataFoundException;
-import me.henrytao.firechatengine.config.Constants;
 import me.henrytao.firechatengine.utils.firechat.Wrapper.Type;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
 import rx.Observable;
@@ -85,6 +87,7 @@ public class FirechatUtils {
     return query;
   }
 
+  @NonNull
   public static <T> List<T> merge(List<T> items1, List<T> items2) {
     List<T> result = new ArrayList<>();
     if (items1 != null) {

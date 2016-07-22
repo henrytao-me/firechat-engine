@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
+import me.henrytao.firechatengine.utils.Logger;
 
 /**
  * Created by henrytao on 7/2/16.

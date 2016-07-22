@@ -123,10 +123,15 @@ public class Cache {
           .orderBy(Model_Table.priority, false)
           .limit(1)
           .queryList();
+      Model cache = caches.size() > 0 ? caches.get(0) : null;
 
-      if (caches.size() > 0) {
-        Model model = new Model(caches.get(0).getId(), wrapper);
-        model.update();
+      if (cache != null) {
+        if (wrapper.priority > cache.getPriority()) {
+          Model model = new Model(caches.get(0).getId(), wrapper);
+          model.update();
+        } else {
+          // do nothing
+        }
       } else {
         Model model = new Model(wrapper);
         model.save();
