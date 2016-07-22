@@ -79,8 +79,9 @@ public class Cache {
           .select(
               Model_Table.ref,
               Model_Table.key,
+              Model_Table.priority,
               Model_Table.data,
-              Model_Table.priority)
+              Model_Table.isSent)
           .from(Model.class)
           .where(Model_Table.ref.like(String.format(Locale.US, "%s/%%", ref)));
 
@@ -100,8 +101,7 @@ public class Cache {
       int i = caches.size();
       while (--i >= 0) {
         try {
-          Model model = caches.get(i);
-          wrappers.add(Wrapper.create(tClass, model.getRef(), model.getKey(), model.getValue(tClass), model.getPriority()));
+          wrappers.add(Wrapper.create(tClass, caches.get(i)));
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -126,7 +126,7 @@ public class Cache {
       Model cache = caches.size() > 0 ? caches.get(0) : null;
 
       if (cache != null) {
-        if (wrapper.priority > cache.getPriority()) {
+        if (wrapper.priority > cache.getPriority() || (wrapper.priority == cache.getPriority() && !cache.isSent())) {
           Model model = new Model(caches.get(0).getId(), wrapper);
           model.update();
         } else {

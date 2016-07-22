@@ -23,15 +23,21 @@ import java.util.Locale;
 import java.util.Map;
 
 import me.henrytao.firechatengine.core.model.Priority;
+import me.henrytao.firechatengine.core.model.Status;
+import me.henrytao.firechatengine.firecache.db.Model;
 
 public class Wrapper<T> {
 
   public static <T> Wrapper<T> clone(Wrapper<T> wrapper) {
-    return new Wrapper<T>(wrapper.mClass, wrapper.ref, wrapper.key, wrapper.data, wrapper.type, wrapper.priority);
+    return clone(wrapper, wrapper.isSent);
   }
 
-  public static <T> Wrapper<T> create(Class<T> tClass, String ref, String key, T data, double priority) {
-    return new Wrapper<T>(tClass, ref, key, data, priority);
+  public static <T> Wrapper<T> clone(Wrapper<T> wrapper, boolean isSent) {
+    return new Wrapper<T>(wrapper.mClass, wrapper.ref, wrapper.key, wrapper.data, wrapper.type, wrapper.priority, isSent);
+  }
+
+  public static <T> Wrapper<T> create(Class<T> tClass, Model model) throws Exception {
+    return new Wrapper<T>(tClass, model);
   }
 
   public static <T> Wrapper<T> create(Class<T> tClass, DataSnapshot dataSnapshot, Type type) {
@@ -47,35 +53,41 @@ public class Wrapper<T> {
 
   public final T data;
 
+  public final boolean isSent;
+
   public final String key;
 
   public final Class<T> mClass;
 
-  public final Double priority;
+  public final double priority;
 
   public final String ref;
 
   public final Type type;
 
-  protected Wrapper(Class<T> tClass, String ref, String key, T data, Type type, double priority) {
+  protected Wrapper(Class<T> tClass, String ref, String key, T data, Type type, double priority, boolean isSent) {
     mClass = tClass;
     this.ref = mergeRefAndKey(ref, key);
     this.key = key;
     this.data = data;
     this.type = type;
     this.priority = priority;
+    this.isSent = isSent;
     if (data instanceof Priority) {
-      ((Priority) data).setPriority(priority);
+      ((Priority) data).setPriority(this.priority);
+    }
+    if (data instanceof Status) {
+      ((Status) data).setIsSent(this.isSent);
     }
   }
 
-  protected Wrapper(Class<T> tClass, String ref, String key, T data, double priority) {
-    this(tClass, ref, key, data, Type.FROM_CACHE, priority);
+  protected Wrapper(Class<T> tClass, Model model) throws Exception {
+    this(tClass, model.getRef(), model.getKey(), model.getValue(tClass), Type.FROM_CACHE, model.getPriority(), model.isSent());
   }
 
   protected Wrapper(Class<T> tClass, DataSnapshot dataSnapshot, Type type) {
     this(tClass, dataSnapshot.getRef().toString(), dataSnapshot.getKey(), dataSnapshot.getValue(tClass), type,
-        FirechatUtils.getPriority(dataSnapshot));
+        FirechatUtils.getPriority(dataSnapshot), true);
   }
 
   public enum Type {

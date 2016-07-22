@@ -57,7 +57,8 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
     mRef = FirecacheReference.create(ChatMessage.class, mMessagesRef)
         .filter(wrapper -> {
           mLogger.d("custom filter: %s | %s | %s", wrapper.type, wrapper.key, wrapper.data);
-          return wrapper.type == Wrapper.Type.ON_CHILD_ADDED || wrapper.type == Wrapper.Type.FROM_CACHE;
+          //return wrapper.type == Wrapper.Type.ON_CHILD_ADDED || wrapper.type == Wrapper.Type.FROM_CACHE;
+          return true;
         })
         .limitToLast(5);
   }

@@ -22,12 +22,15 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import me.henrytao.firechatengine.core.model.Priority;
+import me.henrytao.firechatengine.core.model.Status;
 
 /**
  * Created by henrytao on 7/1/16.
  */
 @Accessors(prefix = "m")
-public class ChatMessage implements Priority {
+public class ChatMessage implements Priority, Status {
+
+  private boolean mIsSent;
 
   @Getter @Setter
   private String mMessage;
@@ -41,6 +44,11 @@ public class ChatMessage implements Priority {
     mMessage = message;
   }
 
+  @Override
+  public void setIsSent(boolean isSent) {
+    mIsSent = isSent;
+  }
+
   @Exclude
   public double getPriority() {
     return mPriority;
@@ -49,5 +57,10 @@ public class ChatMessage implements Priority {
   @Override
   public void setPriority(double priority) {
     mPriority = priority;
+  }
+
+  @Exclude
+  public boolean isSent() {
+    return mIsSent;
   }
 }

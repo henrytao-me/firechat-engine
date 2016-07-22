@@ -37,6 +37,6 @@ public class ChatItemViewModel extends BaseViewModel {
 
   public void bind(ChatMessage data) {
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    message.set(String.format(Locale.US, "%s - %s", data.getMessage(), dateFormat.format(data.getPriority())));
+    message.set(String.format(Locale.US, "%s - %s - %s", data.getMessage(), dateFormat.format(data.getPriority()), data.isSent()));
   }
 }

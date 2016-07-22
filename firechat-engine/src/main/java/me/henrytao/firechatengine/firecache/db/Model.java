@@ -75,6 +75,9 @@ public class Model extends BaseModel {
   long id;
 
   @Column
+  boolean isSent;
+
+  @Column
   String key;
 
   @Index(indexGroups = 1)
@@ -87,19 +90,20 @@ public class Model extends BaseModel {
   public Model() {
   }
 
-  protected Model(String ref, String key, double priority, Blob data) {
+  protected Model(String ref, String key, double priority, Blob data, boolean isSent) {
     this.ref = ref;
     this.key = key;
     this.priority = priority;
     this.data = data;
+    this.isSent = isSent;
   }
 
   public <T> Model(Wrapper<T> wrapper) {
-    this(wrapper.ref, wrapper.key, wrapper.priority, toBlob(wrapper));
+    this(wrapper.ref, wrapper.key, wrapper.priority, toBlob(wrapper), wrapper.isSent);
   }
 
   public <T> Model(long id, Wrapper<T> wrapper) {
-    this(wrapper.ref, wrapper.key, wrapper.priority, toBlob(wrapper));
+    this(wrapper);
     this.id = id;
   }
 
@@ -125,5 +129,9 @@ public class Model extends BaseModel {
     T value = kryo.readObject(input, tClass);
     input.close();
     return value;
+  }
+
+  public boolean isSent() {
+    return isSent;
   }
 }

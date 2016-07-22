@@ -23,6 +23,7 @@ import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import me.henrytao.firechatengine.config.Constants;
 import me.henrytao.firechatengine.exception.NoDataFoundException;
@@ -78,8 +79,7 @@ public class FirecacheReference<T> {
         .flatMap(caches -> Observable
             .just(caches)
             .flatMapIterable(wrappers -> wrappers)
-            .mergeWith(syncDataAfterHavingCache(caches)
-                .flatMap(wrapper -> mCache.set(wrapper).map(aVoid -> Wrapper.clone((Wrapper<T>) wrapper))))
+            .mergeWith(syncDataAfterHavingCache(caches))
             .filter(mFilter::call)
             .map(wrapper -> wrapper.data));
     return observable.compose(Transformer.applyJobExecutorScheduler());
@@ -153,7 +153,10 @@ public class FirecacheReference<T> {
             mRef.orderByPriority(),
             lastSync != null ? lastSync.priority + 1 : mStartAt.getValue(),
             Constants.DEFAULT_END_AT,
-            lastSync != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast));
+            lastSync != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast))
+            .flatMap(wrapper -> mCache
+                .set(wrapper.type == Wrapper.Type.ON_CHILD_ADDED ? Wrapper.clone(wrapper, false) : wrapper)
+                .map(aVoid -> wrapper));
       } else {
         return Observable.create(SubscriptionUtils::onComplete);
       }
@@ -232,6 +235,7 @@ public class FirecacheReference<T> {
         List<Wrapper<T>> data = FirechatUtils.merge(caches, syncs);
         return observable
             .flatMapIterable(wrappers -> wrappers)
+            .flatMap(wrapper -> mCache.set(wrapper).map(aVoid -> wrapper))
             .mergeWith(createListenerIfNecessary(data))
             .map(wrapper -> {
               onNext(wrapper);
