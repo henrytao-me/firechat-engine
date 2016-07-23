@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.henrytao.firechatengine.config.Constants;
-import me.henrytao.firechatengine.exception.NoDataFoundException;
 import me.henrytao.firechatengine.utils.firechat.FirechatUtils;
 import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.firechatengine.utils.rx.SubscriptionUtils;
@@ -183,29 +182,15 @@ public class FirecacheReference<T> {
       onNext(firstCache);
 
       Observable<List<Wrapper<T>>> syncObservable = null;
-      if (mIsOnNext) {
-        if (caches.size() == 0) {
-          syncObservable = FirechatUtils.observeSingleValueEvent(mClass, FirechatUtils.getQuery(
-              mRef.orderByPriority(),
-              mStartAt.getValue(),
-              firstCache != null ? firstCache.priority - 1 : mEndAt.getValue(),
-              mLimitToLast - caches.size()
-          )).toList();
-        } else {
-          syncObservable = Observable.just(new ArrayList<>());
-        }
-      } else {
+      if (mIsOnNext && caches.size() == 0) {
         syncObservable = FirechatUtils.observeSingleValueEvent(mClass, FirechatUtils.getQuery(
             mRef.orderByPriority(),
-            lastCache != null ? lastCache.priority + 1 : mStartAt.getValue(),
-            mEndAt.getValue(),
-            lastCache != null ? Constants.DEFAULT_LIMIT_TO_LAST : mLimitToLast
-        )).toList().onErrorResumeNext(throwable -> {
-          if (throwable instanceof NoDataFoundException) {
-            return Observable.just(new ArrayList<>());
-          }
-          return Observable.error(throwable);
-        });
+            mStartAt.getValue(),
+            firstCache != null ? firstCache.priority - 1 : mEndAt.getValue(),
+            mLimitToLast - caches.size()
+        )).toList();
+      } else {
+        syncObservable = Observable.just(new ArrayList<>());
       }
 
       return syncObservable.flatMap(syncs -> {

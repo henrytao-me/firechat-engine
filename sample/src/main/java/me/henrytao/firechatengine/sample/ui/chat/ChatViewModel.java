@@ -21,7 +21,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 
 import android.databinding.ObservableField;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +94,7 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
       ChatMessage chatMessage = new ChatMessage(message);
       DatabaseReference tmp = mMessagesRef.push();
       tmp.setValue(chatMessage, ServerValue.TIMESTAMP, (databaseError, databaseReference) -> {
-        Log.d("custom setValue", String.format("%s - %s", databaseError, databaseReference));
+        mLogger.d(String.format("custom setValue | %s - %s", databaseError, databaseReference));
       });
       this.message.set(null);
     }
