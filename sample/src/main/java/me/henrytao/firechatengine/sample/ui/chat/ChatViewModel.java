@@ -30,7 +30,6 @@ import me.henrytao.firechatengine.firecache.FirecacheReference;
 import me.henrytao.firechatengine.sample.data.model.ChatMessage;
 import me.henrytao.firechatengine.sample.ui.base.BaseViewModel;
 import me.henrytao.firechatengine.utils.Logger;
-import me.henrytao.firechatengine.utils.firechat.Wrapper;
 import me.henrytao.mvvmlifecycle.rx.UnsubscribeLifeCycle;
 
 /**
@@ -44,6 +43,8 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
 
   private final DatabaseReference mMessagesRef;
 
+  private final FirecacheReference.Builder<ChatMessage> mRefBuilder;
+
   public ObservableField<String> message = new ObservableField<>();
 
   private FirecacheReference<ChatMessage> mRef;
@@ -54,7 +55,7 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
 
     mMessagesRef = FirebaseDatabase.getInstance().getReference().child("messages");
 
-    mRef = FirecacheReference.create(ChatMessage.class, mMessagesRef)
+    mRefBuilder = new FirecacheReference.Builder<>(ChatMessage.class, mMessagesRef)
         .filter(wrapper -> {
           mLogger.d("custom filter: %s | %s | %s", wrapper.type, wrapper.key, wrapper.data);
           //return wrapper.type == Wrapper.Type.ON_CHILD_ADDED || wrapper.type == Wrapper.Type.FROM_CACHE;
@@ -66,9 +67,13 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
   @Override
   public void onCreateView() {
     super.onCreateView();
-    manageSubscription(mRef.addChildEventListener().subscribe(chatMessage -> {
-      addData(chatMessage);
-    }, Throwable::printStackTrace, () -> {
+
+    //manageSubscription(mRefBuilder.build().addChildEventListener().subscribe(chatMessage -> {
+    //}, Throwable::printStackTrace, () -> {
+    //}), UnsubscribeLifeCycle.DESTROY_VIEW);
+
+    mRef = mRefBuilder.build();
+    manageSubscription(mRef.addChildEventListener().subscribe(this::addData, Throwable::printStackTrace, () -> {
       mLogger.d("done");
     }), UnsubscribeLifeCycle.DESTROY_VIEW);
   }
@@ -79,9 +84,7 @@ public class ChatViewModel extends BaseViewModel<ChatViewModel.State> {
 
   public void next() {
     mRef = mRef.next();
-    manageSubscription(mRef.addChildEventListener().subscribe(chatMessage -> {
-      addData(chatMessage);
-    }, Throwable::printStackTrace, () -> {
+    manageSubscription(mRef.addChildEventListener().subscribe(this::addData, Throwable::printStackTrace, () -> {
       mLogger.d("done next");
     }), UnsubscribeLifeCycle.DESTROY_VIEW);
   }

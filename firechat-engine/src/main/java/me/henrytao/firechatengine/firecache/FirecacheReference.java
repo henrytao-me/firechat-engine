@@ -23,7 +23,6 @@ import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import me.henrytao.firechatengine.config.Constants;
 import me.henrytao.firechatengine.exception.NoDataFoundException;
@@ -40,35 +39,54 @@ import rx.subjects.BehaviorSubject;
  */
 public class FirecacheReference<T> {
 
-  public static <T> FirecacheReference<T> create(Class<T> tClass, DatabaseReference ref) {
-    return new FirecacheReference<>(tClass, ref, false);
-  }
-
   private final Cache mCache;
 
   private final Class<T> mClass;
+
+  private final Func1<Wrapper<T>, Boolean> mFilter;
+
+  private final boolean mIsOnNext;
+
+  private final boolean mKeepSyncing;
+
+  private final int mLimitToLast;
 
   private final DatabaseReference mRef;
 
   private BehaviorSubject<Double> mEndAt = BehaviorSubject.create(Constants.DEFAULT_END_AT);
 
-  private Func1<Wrapper<T>, Boolean> mFilter = wrapper -> wrapper != null;
-
-  private boolean mIsOnNext = false;
-
-  private int mLimitToLast = Constants.DEFAULT_LIMIT_TO_LAST;
-
   private BehaviorSubject<Double> mNextEndAt = BehaviorSubject.create();
-
-  private boolean mShouldKeepSyncing = true;
 
   private BehaviorSubject<Double> mStartAt = BehaviorSubject.create(Constants.DEFAULT_START_AT);
 
-  protected FirecacheReference(Class<T> tClass, DatabaseReference ref, boolean isOnNext) {
+  protected FirecacheReference(Class<T> tClass, DatabaseReference ref, double startAt, double endAt,
+      int limitToLast, Func1<Wrapper<T>, Boolean> filter, boolean keepSyncing, boolean isOnNext) {
     mClass = tClass;
     mRef = ref;
-    mCache = Cache.getInstance();
+    mLimitToLast = limitToLast;
+    mFilter = filter;
+    mKeepSyncing = keepSyncing;
     mIsOnNext = isOnNext;
+
+    mStartAt.onNext(startAt);
+    mEndAt.onNext(endAt);
+
+    mCache = Cache.getInstance();
+  }
+
+  protected FirecacheReference(Class<T> tClass, DatabaseReference ref, BehaviorSubject<Double> startAt, BehaviorSubject<Double> endAt,
+      int limitToLast, Func1<Wrapper<T>, Boolean> filter, boolean keepSyncing, boolean isOnNext) {
+    mClass = tClass;
+    mRef = ref;
+    mLimitToLast = limitToLast;
+    mFilter = filter;
+    mKeepSyncing = keepSyncing;
+    mIsOnNext = isOnNext;
+
+    mStartAt = startAt;
+    mEndAt = endAt;
+
+    mCache = Cache.getInstance();
   }
 
   public Observable<T> addChildEventListener() {
@@ -108,47 +126,17 @@ public class FirecacheReference<T> {
     return observable.compose(Transformer.applyJobExecutorScheduler());
   }
 
-  public FirecacheReference<T> endAt(double endAt) {
-    mEndAt.onNext(endAt);
-    return this;
-  }
-
-  public FirecacheReference<T> endAt(BehaviorSubject<Double> endAt) {
-    mEndAt = endAt;
-    return this;
-  }
-
-  public FirecacheReference<T> filter(Func1<Wrapper<T>, Boolean> filter) {
-    mFilter = filter;
-    return this;
-  }
-
-  public FirecacheReference<T> keepSyncing(boolean keepSyncing) {
-    mShouldKeepSyncing = keepSyncing;
-    return this;
-  }
-
-  public FirecacheReference<T> limitToLast(int limitToLast) {
-    mLimitToLast = limitToLast;
-    return this;
-  }
-
   public FirecacheReference<T> next() {
-    return new FirecacheReference<>(mClass, mRef, true)
-        .startAt(mStartAt)
-        .endAt(mNextEndAt)
-        .limitToLast(mLimitToLast)
-        .keepSyncing(false);
+    return next(mLimitToLast);
   }
 
-  public FirecacheReference<T> startAt(double startAt) {
-    mStartAt.onNext(startAt);
-    return this;
+  public FirecacheReference<T> next(int limitToLast) {
+    return new FirecacheReference<T>(mClass, mRef, mStartAt, mNextEndAt, limitToLast, mFilter, false, true);
   }
 
   private Observable<Wrapper<T>> createListenerIfNecessary(List<Wrapper<T>> syncs) {
     return Observable.just(FirechatUtils.getLastItem(syncs)).flatMap(lastSync -> {
-      if (mShouldKeepSyncing) {
+      if (mKeepSyncing) {
         return FirechatUtils.observeChildEvent(mClass, FirechatUtils.getQuery(
             mRef.orderByPriority(),
             lastSync != null ? lastSync.priority + 1 : mStartAt.getValue(),
@@ -184,17 +172,7 @@ public class FirecacheReference<T> {
   }
 
   private Observable<Pair<Double, Double>> onReady() {
-    return mStartAt.flatMap(startAt -> mEndAt.map(endAt -> new Pair<>(startAt, endAt))).first().flatMap(startEndAt -> {
-      if (mIsOnNext && startEndAt.second == Constants.DEFAULT_END_AT) {
-        return Observable.error(new NoDataFoundException());
-      }
-      return Observable.just(startEndAt);
-    });
-  }
-
-  private FirecacheReference<T> startAt(BehaviorSubject<Double> startAt) {
-    mStartAt = startAt;
-    return this;
+    return mStartAt.flatMap(startAt -> mEndAt.map(endAt -> new Pair<>(startAt, endAt))).first();
   }
 
   private Observable<Wrapper<T>> syncDataAfterHavingCache(List<Wrapper<T>> caches) {
@@ -243,5 +221,56 @@ public class FirecacheReference<T> {
             });
       });
     });
+  }
+
+  public static class Builder<T> {
+
+    private final Class<T> mClass;
+
+    private final DatabaseReference mRef;
+
+    private double mEndAt = Constants.DEFAULT_END_AT;
+
+    private Func1<Wrapper<T>, Boolean> mFilter = wrapper -> wrapper != null;
+
+    private boolean mKeepSyncing = true;
+
+    private int mLimitToLast = Constants.DEFAULT_LIMIT_TO_LAST;
+
+    private double mStartAt = Constants.DEFAULT_START_AT;
+
+    public Builder(Class<T> tClass, DatabaseReference ref) {
+      mClass = tClass;
+      mRef = ref;
+    }
+
+    public FirecacheReference<T> build() {
+      return new FirecacheReference<>(mClass, mRef, mStartAt, mEndAt, mLimitToLast, mFilter, mKeepSyncing, false);
+    }
+
+    public Builder<T> endAt(double endAt) {
+      mEndAt = endAt;
+      return this;
+    }
+
+    public Builder<T> filter(Func1<Wrapper<T>, Boolean> filter) {
+      mFilter = filter;
+      return this;
+    }
+
+    public Builder<T> keepSyncing(boolean keepSyncing) {
+      mKeepSyncing = keepSyncing;
+      return this;
+    }
+
+    public Builder<T> limitToLast(int limitToLast) {
+      mLimitToLast = limitToLast;
+      return this;
+    }
+
+    public Builder<T> startAt(double startAt) {
+      mStartAt = startAt;
+      return this;
+    }
   }
 }
